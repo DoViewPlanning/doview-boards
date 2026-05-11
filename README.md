@@ -219,6 +219,12 @@ Contributions, suggestions, issue reports, examples, corrections, and implementa
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
+## Contact / Feedback
+
+For questions, bug reports, or suggestions about DoView Boards, please open an issue in this repository.
+
+For general information about DoView Planning, see https://doviewplanning.org.
+
 ## Public release history
 
 See [`CHANGELOG.md`](CHANGELOG.md).
