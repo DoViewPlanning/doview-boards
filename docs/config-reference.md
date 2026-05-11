@@ -1,0 +1,1324 @@
+# DoView Board Config Reference
+
+**DoView Boards version:** V1.1.0  
+**Release date:** 2026-05-08  
+**Document status:** Technical reference for the first public DoView Boards prompt package release
+
+This document describes the board configuration structure used by the V1.1.0 DoView Board reference engine and builder.
+
+It should be read with:
+
+- [`doview-board-minimum-spec.md`](../spec/doview-board-minimum-spec.md) for the DoView-compatible standard;
+- [`developer-integration-guide.md`](developer-integration-guide.md) for how to use the reference engine and builder;
+- [`security-and-read-only-notes.md`](security-and-read-only-notes.md) for security, deployment, and read-only limitations.
+
+## 1. Scope
+
+This reference documents the practical config shape used by:
+
+- `doview-board-engine.js`;
+- `doview-board-builder.js`;
+- generated standalone DoView Board HTML files;
+- the V1.1.0 examples.
+
+The config format is not the same thing as the DoView-compatible conceptual standard. A system can be DoView-compatible while using a different database, API, storage model, rendering layer, or programming language. This document is for developers who want to work with the V1.1.0 JavaScript reference implementation or generate configs that it can load.
+
+## 2. Config-first build model
+
+The preferred build path is:
+
+```text
+pure JSON board config
+        ↓
+doview-board-builder.js
+        ↓
+standalone HTML board
+```
+
+The builder expects a pure JSON config file. It does not expect a full HTML file, engine source, prompt text, builder source, or `DoView.init(...)` wrapper in the config input.
+
+Basic builder command:
+
+```bash
+node doview-board-builder.js \
+  --engine doview-board-engine.js \
+  --config doview-board-config.json \
+  --out example-board_doview-board_v1.1.0_2026-05-08.html
+```
+
+Generated standalone boards are active HTML/JavaScript files. Treat them like executable web content, not passive documents.
+
+## 3. Root config object
+
+A reference-engine config is a JSON object with this general shape:
+
+```json
+{
+  "title": "Board Title",
+  "slug": "board-slug",
+  "subpages": [],
+  "finalOutcomes": [],
+  "sources": [],
+  "savedState": {}
+}
+```
+
+### 3.1 `title`
+
+Required string.
+
+The title appears in the browser title and board header.
+
+```json
+{
+  "title": "Example DoView Board"
+}
+```
+
+### 3.2 `slug`
+
+Recommended string.
+
+The slug is used by the reference engine and builder for file naming and browser storage. Use lowercase letters, numbers, and hyphens where possible.
+
+```json
+{
+  "slug": "example-doview-board"
+}
+```
+
+If `slug` is missing, the builder can infer a slug-like value for filename checking, but generated release configs should include one explicitly.
+
+### 3.3 `subpages`
+
+Required array.
+
+Each item is a page object. Supported page types are:
+
+- `this_then`;
+- `how`;
+- `documentation`.
+
+```json
+{
+  "subpages": [
+    {
+      "id": "p1",
+      "label": "Main logic",
+      "pageType": "this_then",
+      "color": {
+        "bg": "#eff6ff",
+        "bdr": "#bfdbfe",
+        "tab": "#2563eb"
+      },
+      "cols": []
+    }
+  ]
+}
+```
+
+### 3.4 `finalOutcomes`
+
+Array.
+
+Use this for board-level Final Outcomes. For generated configs, the simplest shape is an array of strings.
+
+```json
+{
+  "finalOutcomes": [
+    "Families have better access to support",
+    "Services learn and improve over time"
+  ]
+}
+```
+
+The builder also accepts object entries with a `label` field, but string entries are the clearest generated-config format.
+
+### 3.5 `sources`
+
+Optional array.
+
+Sources may be strings or objects. Object sources should include at least a `title`/`label` or `url`/`href`.
+
+```json
+{
+  "sources": [
+    {
+      "title": "Information about DoView Boards",
+      "url": "https://doviewplanning.org/doviewboards"
+    }
+  ]
+}
+```
+
+Do not put prompt text, internal build notes, scratch notes, or AI commentary in `sources`.
+
+### 3.6 `savedState`
+
+Required for generated standalone boards.
+
+`savedState` contains the richer board state used by the reference engine: box details, notes, links, measures, evaluation questions, tags, view settings, page info, Documentation Page content, and other persisted state.
+
+Generated standalone boards should include explicit `savedState.viewSettings` so the board reopens consistently.
+
+## 4. Page objects
+
+All pages should include:
+
+```json
+{
+  "id": "p1",
+  "label": "Page label",
+  "pageType": "this_then",
+  "cols": []
+}
+```
+
+### 4.1 `id`
+
+Required string.
+
+Page IDs must be stable and unique within the board. The examples use `p1`, `p2`, `p3`, and so on.
+
+Many other references point to page IDs, including Documentation Page content and generated box IDs.
+
+### 4.2 `label`
+
+Recommended string.
+
+The page label is shown in tabs, navigation, overview, and page headings.
+
+### 4.3 `pageType`
+
+Supported values:
+
+```json
+"this_then"
+"how"
+"documentation"
+```
+
+If `pageType` is omitted, the reference engine treats the page as a This–Then page in many paths. Generated configs should include `pageType` explicitly.
+
+### 4.4 `color`
+
+Object with three hex colour fields:
+
+```json
+{
+  "color": {
+    "bg": "#eff6ff",
+    "bdr": "#bfdbfe",
+    "tab": "#2563eb"
+  }
+}
+```
+
+For generated This–Then pages, the builder requires a complete `color` object with `bg`, `bdr`, and `tab` as `#RRGGBB` hex strings.
+
+It is also good practice to include colour objects on How and Documentation pages, even where the builder is less strict.
+
+### 4.5 `uid`
+
+Optional stable unique ID.
+
+The reference engine can backfill `uid` fields for pages, columns, boxes, links, Measures, and Evaluation Questions. If present, preserve them. Do not treat them as visible labels.
+
+## 5. This–Then pages
+
+A This–Then page represents causal or enabling logic. The config shape below is only the technical representation. Generated or transformed This–Then pages must also follow the modelling rules in [`../spec/doview-board-minimum-spec.md`](../spec/doview-board-minimum-spec.md) and the expanded rules in [`../spec/this-then-page-rules.md`](../spec/this-then-page-rules.md).
+
+```json
+{
+  "id": "p1",
+  "label": "Weekend trip logic",
+  "pageType": "this_then",
+  "color": {
+    "bg": "#eff6ff",
+    "bdr": "#bfdbfe",
+    "tab": "#2563eb"
+  },
+  "cols": [
+    {
+      "h": "Purpose and limits",
+      "boxes": [
+        "Weekend purpose agreed",
+        "Budget and dates realistic"
+      ]
+    },
+    {
+      "h": "Practical plan ready",
+      "boxes": [
+        "Destination chosen",
+        "Transport booked"
+      ]
+    }
+  ]
+}
+```
+
+### 5.1 `cols`
+
+Required array.
+
+Each column object uses:
+
+```json
+{
+  "h": "Column heading",
+  "boxes": ["Box label"]
+}
+```
+
+### 5.2 `cols[].h`
+
+Column heading.
+
+Use a meaningful causal-stage heading. Avoid treating a column heading as a box. If a phrase is an outcome, condition, action, or causal item in the model, put it in `boxes` instead. Do not use generic headings such as `Stage 1`, `Inputs`, `Activities`, or `Outputs` unless they are genuinely appropriate for the domain.
+
+### 5.3 `cols[].boxes`
+
+Array of box-label strings.
+
+The current reference engine expects `cols[].boxes` to contain labels. Rich box fields are carried in `savedState.B`, keyed by generated box ID. The builder warns if a box is an object in `cols[].boxes`. Box labels should be compact outcome or condition statements and should normally contain one concept per box.
+
+### 5.4 This–Then box IDs
+
+The reference engine generates This–Then box IDs from page ID, column index, and box index:
+
+```text
+<page-id>-c<column-index>-b<box-index>
+```
+
+Example:
+
+```text
+p1-c0-b0
+p1-c2-b1
+```
+
+These IDs are used by `savedState.B`, `savedState.ttLinks`, Measure associations, Evaluation Question associations, tags, and jump fields.
+
+## 6. How pages
+
+A How page represents implementation, action, projects, workstreams, responsibilities, or delivery arrangements.
+
+```json
+{
+  "id": "p2",
+  "label": "Projects and actions",
+  "pageType": "how",
+  "color": {
+    "bg": "#ecfdf5",
+    "bdr": "#a7f3d0",
+    "tab": "#10b981"
+  },
+  "howLevel": 1,
+  "howBoxes": [
+    {
+      "id": "H001",
+      "label": "Set up coordination rhythm"
+    },
+    {
+      "id": "H002",
+      "label": "Maintain risk and dependency register"
+    }
+  ],
+  "nextHowNum": 3,
+  "cols": []
+}
+```
+
+### 6.1 `howLevel`
+
+Optional number or `null`.
+
+How levels define the meaning of up-and-down How links within the board. They are not a universal ontology. For example, a board might use:
+
+- Level 1 for programmes;
+- Level 2 for projects;
+- Level 3 for tasks.
+
+Only adjacent levels count as hierarchical How-to-How links in the reference engine. No-level pages participate in non-up-and-down links only.
+
+### 6.2 `howBoxes`
+
+Required array for How pages.
+
+Each How box should include:
+
+```json
+{
+  "id": "H001",
+  "label": "How box label"
+}
+```
+
+How box IDs should be stable. Do not renumber existing How boxes after deletion.
+
+### 6.3 `nextHowNum`
+
+Recommended number.
+
+Tracks the next available How box number for the page.
+
+If the page has `H001` and `H002`, use:
+
+```json
+{
+  "nextHowNum": 3
+}
+```
+
+### 6.4 `cols`
+
+Required array.
+
+For How pages, this is normally an empty array:
+
+```json
+{
+  "cols": []
+}
+```
+
+### 6.5 How box IDs in saved state
+
+The generated reference-engine key for a How box is:
+
+```text
+<page-id>-<how-box-id>
+```
+
+Example:
+
+```text
+p2-H001
+p2-H002
+```
+
+## 7. Documentation pages
+
+Documentation pages hold longer explanatory or supporting material.
+
+```json
+{
+  "id": "p3",
+  "label": "How this board will be used",
+  "pageType": "documentation",
+  "color": {
+    "bg": "#f3f4f6",
+    "bdr": "#d1d5db",
+    "tab": "#6b7280"
+  },
+  "cols": []
+}
+```
+
+Documentation content is stored in `savedState.docContent`, keyed by page ID:
+
+```json
+{
+  "savedState": {
+    "docContent": {
+      "p3": "<h2>Purpose</h2><p>This page explains how the board will be used.</p>"
+    }
+  }
+}
+```
+
+The builder validates that each `savedState.docContent` key points to an existing Documentation page.
+
+Documentation content may include formatted HTML. Implementations that allow rich HTML must apply security controls appropriate to their deployment context.
+
+## 8. Final Outcomes
+
+Final Outcomes are board-level outcomes, separate from ordinary page-level terminal outcomes.
+
+Simple generated shape:
+
+```json
+{
+  "finalOutcomes": [
+    "Community food access is more reliable",
+    "Household stress is reduced"
+  ]
+}
+```
+
+The reference engine uses generated box IDs for Final Outcomes:
+
+```text
+final-b0
+final-b1
+```
+
+Rich Final Outcome state is stored under those keys in `savedState.B`, in the same general shape as other boxes.
+
+## 9. Rich box state: `savedState.B`
+
+`cols[].boxes`, `howBoxes`, and `finalOutcomes` carry the visible labels. Rich details are stored in `savedState.B`.
+
+Example:
+
+```json
+{
+  "savedState": {
+    "B": {
+      "p1-c0-b0": {
+        "label": "Weekend purpose agreed",
+        "light": "grey",
+        "entries": [
+          {
+            "type": "note1",
+            "text": "Family members agree what the weekend is mainly for."
+          }
+        ],
+        "priority": "A",
+        "hasSubpage": false,
+        "detailText": "Keep the reason for the trip short and explicit.",
+        "borderColor": "",
+        "boxColor": "",
+        "measures": [],
+        "evalQuestions": [],
+        "tagIds": [],
+        "jumpToPage": "",
+        "uid": "box_example"
+      }
+    }
+  }
+}
+```
+
+### 9.1 Box-state fields
+
+Common fields:
+
+| Field | Meaning |
+|---|---|
+| `label` | Box label. Should match the visible label in the page structure where applicable. |
+| `light` | Traffic-light state. Common values are `grey`, `green`, `yellow`, and `red`. Generated boards should normally leave this neutral unless the user asks otherwise. |
+| `entries` | Array of note entries. Used for Notes 1–5 and older note-style entries. |
+| `priority` | Optional priority marker, such as `A`, `B`, or `C`. Leave blank unless useful or requested. |
+| `hasSubpage` | Boolean used by the reference engine for drill/subpage affordances. |
+| `detailText` | Display text / supporting text for the box. |
+| `borderColor` | Optional custom border colour. |
+| `boxColor` | Optional custom fill colour. |
+| `measures` | Array of Measure IDs associated with this box. |
+| `evalQuestions` | Array of Evaluation Question IDs associated with this box. |
+| `tagIds` | Array of tag IDs attached to this box. |
+| `jumpToPage` | Optional page ID for a jump/drill navigation link. |
+| `uid` | Stable unique ID. Preserve if present. |
+
+Optional copy/provenance metadata may also appear:
+
+```json
+{
+  "sourceUid": "",
+  "sourceBoardUid": "",
+  "sourceBoardTitle": "",
+  "sourceObjectType": "",
+  "sourceObjectLabelAtCopy": "",
+  "copiedAt": ""
+}
+```
+
+Preserve these fields where present. Do not invent them if absent.
+
+### 9.2 Notes in `entries`
+
+Box Notes are stored as entries:
+
+```json
+{
+  "entries": [
+    {
+      "type": "note1",
+      "text": "Evidence or assumption note."
+    },
+    {
+      "type": "note2",
+      "text": "Implementation note."
+    }
+  ]
+}
+```
+
+Supported note entry types include:
+
+```text
+note1
+note2
+note3
+note4
+note5
+```
+
+Older boards may also contain legacy entry types such as `sofar` or `note`. Preserve unknown or legacy entries unless there is a deliberate migration.
+
+### 9.3 Display text
+
+Box Display text is stored as `detailText`.
+
+```json
+{
+  "detailText": "Longer supporting explanation shown under the box when Display text is enabled."
+}
+```
+
+Hiding Display text through Page view settings must not delete `detailText`.
+
+## 10. Structural links
+
+The reference engine stores structural links in two arrays:
+
+```json
+{
+  "savedState": {
+    "ttLinks": [],
+    "howLinks": []
+  }
+}
+```
+
+Links are many-to-many. A box may have zero, one, or many incoming links and zero, one, or many outgoing links.
+
+### 10.1 This–Then links: `savedState.ttLinks`
+
+This–Then links connect This–Then boxes to This–Then boxes.
+
+```json
+{
+  "id": "ttl_1",
+  "from": "p1-c0-b0",
+  "to": "p1-c1-b0",
+  "polarity": "positive",
+  "mainText": "A clear purpose helps choose a destination that fits the weekend.",
+  "notes1": "",
+  "notes2": "",
+  "notes3": "",
+  "measures": [],
+  "evalQuestions": [],
+  "tagIds": [],
+  "uid": "link_example"
+}
+```
+
+Fields:
+
+| Field | Meaning |
+|---|---|
+| `id` | Stable link ID, usually `ttl_1`, `ttl_2`, and so on. |
+| `from` | Source This–Then box ID. |
+| `to` | Target This–Then box ID. |
+| `polarity` | `positive` or `negative`. Missing or other values are treated as positive by the reference engine. |
+| `mainText` | Display text / explanation for the link. Useful for evidence, assumptions, or rationale. |
+| `notes1`, `notes2`, `notes3` | Link notes. |
+| `measures` | Measure IDs associated with this This–Then link. |
+| `evalQuestions` | Evaluation Question IDs associated with this This–Then link. |
+| `tagIds` | Tags applied to this link. |
+| `uid` | Stable unique ID. Preserve if present. |
+
+This–Then links may be positive or negative:
+
+```json
+{
+  "polarity": "negative"
+}
+```
+
+Use negative polarity when the source reduces, prevents, constrains, weakens, or makes less likely the target.
+
+### 10.2 This–Then link counter: `ttLinkNextId`
+
+Use this to preserve the next available This–Then link number:
+
+```json
+{
+  "savedState": {
+    "ttLinkNextId": 12
+  }
+}
+```
+
+If the board already has `ttl_1` through `ttl_11`, use `12`.
+
+### 10.3 How links: `savedState.howLinks`
+
+How links connect How boxes to This–Then boxes or How boxes.
+
+```json
+{
+  "id": "hwl_1",
+  "from": "p2-H001",
+  "to": "p1-c0-b0",
+  "mainText": "Mapping work supports clear understanding of local need.",
+  "notes1": "",
+  "notes2": "",
+  "notes3": "",
+  "tagIds": [],
+  "uid": "link_example"
+}
+```
+
+Fields:
+
+| Field | Meaning |
+|---|---|
+| `id` | Stable link ID, usually `hwl_1`, `hwl_2`, and so on. |
+| `from` | Source How box ID. In the reference engine, How links must have a How box as the source. |
+| `to` | Target This–Then box ID or How box ID. |
+| `mainText` | Display text / explanation for the How link. |
+| `notes1`, `notes2`, `notes3` | Link notes. |
+| `tagIds` | Tags applied to this link. |
+| `uid` | Stable unique ID. Preserve if present. |
+| `linkKind` | Optional. `"lateral"` explicitly marks a non-up-and-down link. |
+
+How links do not support link-level Measures or Evaluation Questions in V1.1.0. Do not add `measures` or `evalQuestions` to How links expecting the reference engine to use them.
+
+### 10.4 How link classification
+
+The reference engine classifies How links from their endpoints.
+
+A How-to-This–Then link is hierarchical/upward only when the source How box is on a Level-1 How page.
+
+```text
+Level-1 How box → This–Then box = upward How link
+Level-2-or-deeper How box → This–Then box = non-up-and-down How link
+```
+
+A How-to-How link is hierarchical only when the source and target pages have adjacent How levels and the boxes are not on the same page.
+
+```text
+Level N How box → Level N-1 How box = upward How link
+Level N How box → Level N+1 How box = downward How link
+same page, same level, skipped level, or no-level = non-up-and-down How link
+```
+
+`linkKind: "lateral"` can be used to explicitly mark a How link as non-up-and-down.
+
+### 10.5 How link counter: `howLinkNextId`
+
+Use this to preserve the next available How link number:
+
+```json
+{
+  "savedState": {
+    "howLinkNextId": 4
+  }
+}
+```
+
+## 11. Measures
+
+Measures are board-level reusable objects stored in `savedState.measures`.
+
+```json
+{
+  "id": "M001",
+  "title": "Trip cost compared with planned budget",
+  "mainText": "Compare actual spend with the budget agreed before booking.",
+  "notes1": "",
+  "notes2": "",
+  "notes3": "",
+  "tagIds": [],
+  "uid": "measure_example"
+}
+```
+
+Fields:
+
+| Field | Meaning |
+|---|---|
+| `id` | Stable Measure ID, usually `M001`, `M002`, and so on. |
+| `title` | Measure title. |
+| `mainText` | Display text / description. |
+| `notes1`, `notes2`, `notes3` | Measure notes. |
+| `tagIds` | Tags applied to this Measure. |
+| `uid` | Stable unique ID. Preserve if present. |
+
+### 11.1 Measure associations
+
+Measures may be associated with boxes:
+
+```json
+{
+  "savedState": {
+    "B": {
+      "p1-c0-b0": {
+        "measures": ["M001"]
+      }
+    }
+  }
+}
+```
+
+Measures may also be associated with This–Then links:
+
+```json
+{
+  "savedState": {
+    "ttLinks": [
+      {
+        "id": "ttl_1",
+        "from": "p1-c0-b0",
+        "to": "p1-c1-b0",
+        "measures": ["M001"]
+      }
+    ]
+  }
+}
+```
+
+### 11.2 `measureNextId`
+
+Use this to preserve the next available Measure number:
+
+```json
+{
+  "savedState": {
+    "measureNextId": 3
+  }
+}
+```
+
+Do not renumber Measures after deletion.
+
+## 12. Evaluation Questions
+
+Evaluation Questions are board-level reusable objects stored in `savedState.evalQuestions`.
+
+```json
+{
+  "id": "EQ001",
+  "questionText": "Did the plan reduce avoidable stress?",
+  "mainText": "Ask whether early planning prevented common last-minute problems.",
+  "notes1": "",
+  "notes2": "",
+  "notes3": "",
+  "tagIds": [],
+  "uid": "eq_example"
+}
+```
+
+Fields:
+
+| Field | Meaning |
+|---|---|
+| `id` | Stable Evaluation Question ID, usually `EQ001`, `EQ002`, and so on. |
+| `questionText` | The evaluation question. |
+| `mainText` | Display text / explanation. |
+| `notes1`, `notes2`, `notes3` | Evaluation Question notes. |
+| `tagIds` | Tags applied to this Evaluation Question. |
+| `uid` | Stable unique ID. Preserve if present. |
+
+### 12.1 Evaluation Question associations
+
+Evaluation Questions may be associated with boxes:
+
+```json
+{
+  "savedState": {
+    "B": {
+      "p1-c0-b0": {
+        "evalQuestions": ["EQ001"]
+      }
+    }
+  }
+}
+```
+
+They may also be associated with This–Then links:
+
+```json
+{
+  "savedState": {
+    "ttLinks": [
+      {
+        "id": "ttl_1",
+        "from": "p1-c0-b0",
+        "to": "p1-c1-b0",
+        "evalQuestions": ["EQ001"]
+      }
+    ]
+  }
+}
+```
+
+### 12.2 `eqNextId`
+
+Use this to preserve the next available Evaluation Question number:
+
+```json
+{
+  "savedState": {
+    "eqNextId": 3
+  }
+}
+```
+
+Do not renumber Evaluation Questions after deletion.
+
+## 13. Tags
+
+Tags are board-level user-defined visual labels.
+
+```json
+{
+  "savedState": {
+    "tags": [
+      {
+        "id": "tag_example",
+        "short": "EV",
+        "label": "Evidence",
+        "desc": "Evidence-supported item"
+      }
+    ]
+  }
+}
+```
+
+Supported elements can refer to tags through `tagIds` arrays.
+
+Tags may apply to:
+
+- boxes;
+- This–Then links;
+- How links;
+- Measures;
+- Evaluation Questions.
+
+Tags are not provenance, permissions, locks, verification, official status, authorship proof, security, or protection. Do not add tags to unsupported surfaces such as pages, page tabs, Sources, Board info, Page info, or Documentation Page clones.
+
+## 14. Page, board, and Documentation state
+
+### 14.1 `boardInfo`
+
+Board-level information string.
+
+```json
+{
+  "savedState": {
+    "boardInfo": "Board-level assumptions, scope notes, or caveats."
+  }
+}
+```
+
+### 14.2 `pageInfo`
+
+Object keyed by page ID.
+
+```json
+{
+  "savedState": {
+    "pageInfo": {
+      "p1": "Page-specific assumptions or review notes."
+    }
+  }
+}
+```
+
+### 14.3 `docContent`
+
+Object keyed by Documentation page ID.
+
+```json
+{
+  "savedState": {
+    "docContent": {
+      "p3": "<h2>Evidence notes</h2><p>Supporting material.</p>"
+    }
+  }
+}
+```
+
+### 14.4 `topRightText`
+
+Optional short plain-text annotation shown in the page-info bar.
+
+```json
+{
+  "savedState": {
+    "topRightText": "Draft"
+  }
+}
+```
+
+Use this for short text such as `Draft`, `Illustrative only`, or `Internal working version`. It is not a security or confidentiality control.
+
+## 15. View settings
+
+Generated standalone boards must include explicit view settings.
+
+Simple default V1.1.0 settings:
+
+```json
+{
+  "savedState": {
+    "viewSettings": {
+      "thisThen": {
+        "showCounts": false,
+        "showTrafficLights": false,
+        "showPriorities": false,
+        "showHowCounts": false,
+        "showMeasures": false,
+        "showEvalQuestions": false,
+        "showMainText": false,
+        "showLateralHow": false,
+        "showTags": false
+      },
+      "how": {
+        "showNumbering": false,
+        "showTrafficLights": false,
+        "showPriorities": false,
+        "showWhyCounts": false,
+        "showLateralHow": false,
+        "showMeasures": false,
+        "showEvalQuestions": false,
+        "showMainText": false,
+        "showTags": false
+      },
+      "finalOutcomes": {
+        "showTrafficLights": false,
+        "showPriorities": false,
+        "showMeasures": false,
+        "showEvalQuestions": false,
+        "showMainText": false,
+        "showTags": false
+      }
+    }
+  }
+}
+```
+
+View settings control display only. They must not be used to delete or remove underlying data.
+
+## 16. Other saved-state fields
+
+The reference engine may use these additional fields:
+
+| Field | Meaning |
+|---|---|
+| `SP` | Saved copy of subpage/page structure. Present in saved boards and some standalone examples. |
+| `FO` | Saved copy of Final Outcome labels/state. |
+| `createdDate` | Board creation date string. |
+| `boardInstanceId` | Instance identifier used by the reference engine. |
+| `boardUid` | Stable board-level unique ID. |
+| `sourcesInitialized` | Tracks whether the default source seed has been applied. |
+| `presentationView` | Boolean presentation-view state. |
+| `isReadonly` | Boolean marker for read-only copies. |
+
+Preserve unknown saved-state fields where practical. Future versions may add fields.
+
+## 17. Read-only config marker
+
+A read-only copy carries this marker in embedded saved state:
+
+```json
+{
+  "savedState": {
+    "isReadonly": true
+  }
+}
+```
+
+This disables editing through the reference-board interface. It is not access control, encryption, tamper protection, authentication, authorization, or a security boundary.
+
+See [`security-and-read-only-notes.md`](security-and-read-only-notes.md).
+
+## 18. Sources
+
+A source may be a string:
+
+```json
+{
+  "sources": [
+    "Local workshop notes, 2026-05-08"
+  ]
+}
+```
+
+Or an object:
+
+```json
+{
+  "sources": [
+    {
+      "title": "Source title",
+      "url": "https://example.org/source"
+    }
+  ]
+}
+```
+
+Object source field aliases accepted by the builder include:
+
+```text
+title or label
+url or href
+```
+
+Do not invent sources. Where public evidence is used, include sources at board level and place the relevant source close to the specific claim where useful, such as in box Display text, link Display text, Page info, Board info, or Documentation content.
+
+## 19. File assembly rules
+
+The builder creates a standalone HTML file with this structure:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Board Title</title>
+<script>
+/* engine source */
+</script>
+</head>
+<body>
+<script>
+DoView.init({
+  "title": "Board Title"
+});
+</script>
+</body>
+</html>
+```
+
+The final HTML should:
+
+- begin with `<!DOCTYPE html>`;
+- include the engine exactly once in the head;
+- include exactly one body-only `DoView.init(...)` config call;
+- not include prompt text;
+- not include builder source;
+- not include temporary validation code;
+- not duplicate the engine in the body.
+
+Recommended output filename pattern:
+
+```text
+<board-slug>_doview-board_v<version>_<yyyy-mm-dd>.html
+```
+
+Example:
+
+```text
+example-board_doview-board_v1.1.0_2026-05-08.html
+```
+
+## 20. Minimal generated config example
+
+This example is intentionally small. It is technically useful for testing the reference engine and builder; it is not a model of a rich real-world board.
+
+```json
+{
+  "title": "Example Minimal DoView Board",
+  "slug": "example-minimal-doview-board",
+  "subpages": [
+    {
+      "id": "p1",
+      "label": "Main logic",
+      "pageType": "this_then",
+      "color": {
+        "bg": "#eff6ff",
+        "bdr": "#bfdbfe",
+        "tab": "#2563eb"
+      },
+      "cols": [
+        {
+          "h": "Starting conditions",
+          "boxes": [
+            "Need understood"
+          ]
+        },
+        {
+          "h": "Better response",
+          "boxes": [
+            "Action is focused"
+          ]
+        },
+        {
+          "h": "Result",
+          "boxes": [
+            "People benefit"
+          ]
+        }
+      ]
+    }
+  ],
+  "finalOutcomes": [
+    "People benefit from a focused response"
+  ],
+  "sources": [],
+  "savedState": {
+    "B": {
+      "p1-c0-b0": {
+        "label": "Need understood",
+        "light": "grey",
+        "entries": [],
+        "priority": "",
+        "hasSubpage": false,
+        "detailText": "",
+        "borderColor": "",
+        "boxColor": "",
+        "measures": [],
+        "evalQuestions": [],
+        "tagIds": [],
+        "jumpToPage": ""
+      },
+      "p1-c1-b0": {
+        "label": "Action is focused",
+        "light": "grey",
+        "entries": [],
+        "priority": "",
+        "hasSubpage": false,
+        "detailText": "",
+        "borderColor": "",
+        "boxColor": "",
+        "measures": [],
+        "evalQuestions": [],
+        "tagIds": [],
+        "jumpToPage": ""
+      },
+      "p1-c2-b0": {
+        "label": "People benefit",
+        "light": "grey",
+        "entries": [],
+        "priority": "",
+        "hasSubpage": false,
+        "detailText": "",
+        "borderColor": "",
+        "boxColor": "",
+        "measures": [],
+        "evalQuestions": [],
+        "tagIds": [],
+        "jumpToPage": ""
+      },
+      "final-b0": {
+        "label": "People benefit from a focused response",
+        "light": "grey",
+        "entries": [],
+        "priority": "",
+        "hasSubpage": false,
+        "detailText": "",
+        "borderColor": "",
+        "boxColor": "",
+        "measures": [],
+        "evalQuestions": [],
+        "tagIds": [],
+        "jumpToPage": ""
+      }
+    },
+    "boardInfo": "",
+    "pageInfo": {},
+    "docContent": {},
+    "ttLinks": [
+      {
+        "id": "ttl_1",
+        "from": "p1-c0-b0",
+        "to": "p1-c1-b0",
+        "polarity": "positive",
+        "mainText": "",
+        "notes1": "",
+        "notes2": "",
+        "notes3": "",
+        "measures": [],
+        "evalQuestions": [],
+        "tagIds": []
+      },
+      {
+        "id": "ttl_2",
+        "from": "p1-c1-b0",
+        "to": "p1-c2-b0",
+        "polarity": "positive",
+        "mainText": "",
+        "notes1": "",
+        "notes2": "",
+        "notes3": "",
+        "measures": [],
+        "evalQuestions": [],
+        "tagIds": []
+      }
+    ],
+    "ttLinkNextId": 3,
+    "howLinks": [],
+    "howLinkNextId": 1,
+    "measures": [],
+    "measureNextId": 1,
+    "evalQuestions": [],
+    "eqNextId": 1,
+    "tags": [],
+    "viewSettings": {
+      "thisThen": {
+        "showCounts": false,
+        "showTrafficLights": false,
+        "showPriorities": false,
+        "showHowCounts": false,
+        "showMeasures": false,
+        "showEvalQuestions": false,
+        "showMainText": false,
+        "showLateralHow": false,
+        "showTags": false
+      },
+      "how": {
+        "showNumbering": false,
+        "showTrafficLights": false,
+        "showPriorities": false,
+        "showWhyCounts": false,
+        "showLateralHow": false,
+        "showMeasures": false,
+        "showEvalQuestions": false,
+        "showMainText": false,
+        "showTags": false
+      },
+      "finalOutcomes": {
+        "showTrafficLights": false,
+        "showPriorities": false,
+        "showMeasures": false,
+        "showEvalQuestions": false,
+        "showMainText": false,
+        "showTags": false
+      }
+    },
+    "topRightText": "",
+    "sourcesInitialized": true
+  }
+}
+```
+
+## 21. Developer compatibility guidance
+
+When generating or transforming configs:
+
+- keep page IDs stable;
+- keep box IDs consistent with page/column/box positions;
+- update links when boxes move or are deleted;
+- preserve `uid` fields where present;
+- preserve unknown additive saved-state fields where practical;
+- do not renumber How boxes, Measures, Evaluation Questions, or links merely because an item was deleted;
+- keep view settings separate from model data;
+- do not treat tags as security, provenance, or official status;
+- keep navigation jumps distinct from structural links;
+- keep This–Then links distinct from How links;
+- keep generated This–Then pages domain-shaped rather than template-shaped, following the page-shape, terminal-outcome, causal-connectivity, and many-to-many link rules in the specification;
+- do not add unsupported schema and assume the V1.1.0 reference engine will use it.
+
+## 22. Validation checklist
+
+Before using the builder or publishing a generated board, check:
+
+- [ ] config is pure JSON;
+- [ ] root object has `title`, `subpages`, and `savedState`;
+- [ ] generated boards include `savedState.viewSettings`;
+- [ ] page IDs are unique;
+- [ ] page types are valid;
+- [ ] This–Then pages have complete `color` objects;
+- [ ] This–Then pages have been reviewed against the modelling rules in the minimum specification and `spec/this-then-page-rules.md`;
+- [ ] `cols` arrays exist;
+- [ ] How pages have `howBoxes` arrays;
+- [ ] Documentation Page content keys point to Documentation pages;
+- [ ] links point to real box IDs;
+- [ ] `sources` contains only real source material;
+- [ ] final HTML contains the engine once and one body `DoView.init(...)` call;
+- [ ] board quality has been reviewed against the minimum specification.

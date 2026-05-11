@@ -1,0 +1,291 @@
+{
+  "title": "Example This–Then DoView — Neighbourhood Flood Preparedness",
+  "slug": "example-this-then-flood-preparedness",
+  "subpages": [
+    {
+      "id": "p1",
+      "label": "Flood preparedness logic",
+      "pageType": "this_then",
+      "color": {
+        "bg": "#e0f2fe",
+        "bdr": "#7dd3fc",
+        "tab": "#0284c7"
+      },
+      "cols": [
+        {
+          "h": "Local risk and warning conditions",
+          "boxes": [
+            "Flood warnings understood",
+            "Vulnerable households identified",
+            "Road access risk mapped",
+            "Warning messages delayed"
+          ]
+        },
+        {
+          "h": "Community readiness",
+          "boxes": [
+            "Response roles agreed",
+            "Households prepare emergency kits",
+            "Safe routes planned"
+          ]
+        },
+        {
+          "h": "Protective behaviour",
+          "boxes": [
+            "People act before water rises",
+            "People reach help safely"
+          ]
+        },
+        {
+          "h": "Reduced flood harm",
+          "boxes": [
+            "Flood harm reduced"
+          ]
+        }
+      ]
+    }
+  ],
+  "finalOutcomes": [
+    "Neighbourhood flood resilience strengthened"
+  ],
+  "sources": [
+    {
+      "title": "Example-only source note",
+      "url": "https://doviewplanning.org"
+    }
+  ],
+  "savedState": {
+    "boardInfo": "Example config showing a This–Then Page with many-to-many causal linking, positive and negative link polarity, and link notes. Replace example content before real use.",
+    "pageInfo": {
+      "p1": "This page demonstrates causal stages from risk and warning conditions through readiness, protective behaviour, and reduced harm. It includes one negative-polarity link."
+    },
+    "B": {
+      "p1-c0-b0": {
+        "label": "Flood warnings understood",
+        "light": "grey",
+        "entries": [],
+        "priority": "",
+        "hasSubpage": false,
+        "detailText": "Residents understand warning channels, trigger points, and what action is expected.",
+        "borderColor": "",
+        "boxColor": "",
+        "measures": [],
+        "evalQuestions": [],
+        "tagIds": []
+      },
+      "p1-c0-b1": {
+        "label": "Vulnerable households identified",
+        "light": "grey",
+        "entries": [],
+        "priority": "",
+        "hasSubpage": false,
+        "detailText": "Households needing extra warning, transport, medication, mobility, or communication support are known.",
+        "borderColor": "",
+        "boxColor": "",
+        "measures": [],
+        "evalQuestions": [],
+        "tagIds": []
+      },
+      "p1-c0-b2": {
+        "label": "Road access risk mapped",
+        "light": "grey",
+        "entries": [],
+        "priority": "",
+        "hasSubpage": false,
+        "detailText": "Likely road closures, low points, and safer access routes have been identified.",
+        "borderColor": "",
+        "boxColor": "",
+        "measures": [],
+        "evalQuestions": [],
+        "tagIds": []
+      },
+      "p1-c0-b3": {
+        "label": "Warning messages delayed",
+        "light": "grey",
+        "entries": [],
+        "priority": "",
+        "hasSubpage": false,
+        "detailText": "Delay is included as a risk condition that negatively affects timely action.",
+        "borderColor": "",
+        "boxColor": "",
+        "measures": [],
+        "evalQuestions": [],
+        "tagIds": []
+      }
+    },
+    "ttLinks": [
+      {
+        "id": "ttl_1",
+        "from": "p1-c0-b0",
+        "to": "p1-c2-b0",
+        "polarity": "positive",
+        "mainText": "Understanding warnings helps people act early.",
+        "notes1": "Positive This–Then link.",
+        "notes2": "",
+        "notes3": "",
+        "measures": [],
+        "evalQuestions": [],
+        "tagIds": []
+      },
+      {
+        "id": "ttl_2",
+        "from": "p1-c0-b1",
+        "to": "p1-c1-b0",
+        "polarity": "positive",
+        "mainText": "Knowing which households need support helps define response roles.",
+        "notes1": "Example of an early condition contributing to a readiness box.",
+        "notes2": "",
+        "notes3": "",
+        "measures": [],
+        "evalQuestions": [],
+        "tagIds": []
+      },
+      {
+        "id": "ttl_3",
+        "from": "p1-c0-b2",
+        "to": "p1-c1-b2",
+        "polarity": "positive",
+        "mainText": "Mapping access risks makes safe-route planning possible.",
+        "notes1": "",
+        "notes2": "",
+        "notes3": "",
+        "measures": [],
+        "evalQuestions": [],
+        "tagIds": []
+      },
+      {
+        "id": "ttl_4",
+        "from": "p1-c0-b3",
+        "to": "p1-c2-b0",
+        "polarity": "negative",
+        "mainText": "Delayed warnings reduce the likelihood that people act before water rises.",
+        "notes1": "Negative This–Then link.",
+        "notes2": "",
+        "notes3": "",
+        "measures": [],
+        "evalQuestions": [],
+        "tagIds": []
+      },
+      {
+        "id": "ttl_5",
+        "from": "p1-c1-b0",
+        "to": "p1-c2-b0",
+        "polarity": "positive",
+        "mainText": "Agreed roles support earlier action.",
+        "notes1": "One source box can contribute to multiple target boxes.",
+        "notes2": "",
+        "notes3": "",
+        "measures": [],
+        "evalQuestions": [],
+        "tagIds": []
+      },
+      {
+        "id": "ttl_6",
+        "from": "p1-c1-b0",
+        "to": "p1-c2-b1",
+        "polarity": "positive",
+        "mainText": "Agreed roles also help people reach assistance safely.",
+        "notes1": "Many-to-many causal network example.",
+        "notes2": "",
+        "notes3": "",
+        "measures": [],
+        "evalQuestions": [],
+        "tagIds": []
+      },
+      {
+        "id": "ttl_7",
+        "from": "p1-c1-b1",
+        "to": "p1-c3-b0",
+        "polarity": "positive",
+        "mainText": "Prepared kits reduce harm by helping households cope during disruption.",
+        "notes1": "",
+        "notes2": "",
+        "notes3": "",
+        "measures": [],
+        "evalQuestions": [],
+        "tagIds": []
+      },
+      {
+        "id": "ttl_8",
+        "from": "p1-c1-b2",
+        "to": "p1-c2-b1",
+        "polarity": "positive",
+        "mainText": "Safe-route planning helps people reach help safely.",
+        "notes1": "",
+        "notes2": "",
+        "notes3": "",
+        "measures": [],
+        "evalQuestions": [],
+        "tagIds": []
+      },
+      {
+        "id": "ttl_9",
+        "from": "p1-c2-b0",
+        "to": "p1-c3-b0",
+        "polarity": "positive",
+        "mainText": "Early action helps reduce harm.",
+        "notes1": "Multiple boxes can contribute to the same terminal outcome.",
+        "notes2": "",
+        "notes3": "",
+        "measures": [],
+        "evalQuestions": [],
+        "tagIds": []
+      },
+      {
+        "id": "ttl_10",
+        "from": "p1-c2-b1",
+        "to": "p1-c3-b0",
+        "polarity": "positive",
+        "mainText": "Reaching help safely helps reduce harm.",
+        "notes1": "",
+        "notes2": "",
+        "notes3": "",
+        "measures": [],
+        "evalQuestions": [],
+        "tagIds": []
+      }
+    ],
+    "ttLinkNextId": 11,
+    "howLinks": [],
+    "howLinkNextId": 1,
+    "measures": [],
+    "measureNextId": 1,
+    "evalQuestions": [],
+    "eqNextId": 1,
+    "tags": [],
+    "viewSettings": {
+      "thisThen": {
+        "showCounts": false,
+        "showTrafficLights": false,
+        "showPriorities": false,
+        "showHowCounts": false,
+        "showMeasures": false,
+        "showEvalQuestions": false,
+        "showMainText": false,
+        "showLateralHow": false,
+        "showTags": false
+      },
+      "how": {
+        "showNumbering": false,
+        "showTrafficLights": false,
+        "showPriorities": false,
+        "showWhyCounts": false,
+        "showLateralHow": false,
+        "showMeasures": false,
+        "showEvalQuestions": false,
+        "showMainText": false,
+        "showTags": false
+      },
+      "finalOutcomes": {
+        "showTrafficLights": false,
+        "showPriorities": false,
+        "showMeasures": false,
+        "showEvalQuestions": false,
+        "showMainText": false,
+        "showTags": false
+      }
+    },
+    "topRightText": "This–Then reference example",
+    "sourcesInitialized": true
+  }
+}

@@ -1,0 +1,145 @@
+{
+  "title": "Example Minimal DoView — Community Garden Open Day",
+  "slug": "example-minimal-community-garden-open-day",
+  "subpages": [
+    {
+      "id": "p1",
+      "label": "Open day logic",
+      "pageType": "this_then",
+      "color": {
+        "bg": "#ecfdf5",
+        "bdr": "#a7f3d0",
+        "tab": "#059669"
+      },
+      "cols": [
+        {
+          "h": "Foundations in place",
+          "boxes": [
+            "Purpose agreed",
+            "Volunteers available"
+          ]
+        },
+        {
+          "h": "Open day prepared",
+          "boxes": [
+            "Activities planned",
+            "Visitors invited"
+          ]
+        },
+        {
+          "h": "Open day value created",
+          "boxes": [
+            "Residents more connected to the garden"
+          ]
+        }
+      ]
+    }
+  ],
+  "finalOutcomes": [
+    "Community garden participation strengthened"
+  ],
+  "sources": [
+    {
+      "title": "Example-only source note",
+      "url": "https://doviewplanning.org"
+    }
+  ],
+  "savedState": {
+    "boardInfo": "Minimal reference config showing one This–Then Page, one Final Outcome, and simple many-to-one causal linking. Replace example content before real use.",
+    "pageInfo": {
+      "p1": "A small This–Then example. The two preparation boxes both contribute to the final page-level outcome."
+    },
+    "ttLinks": [
+      {
+        "id": "ttl_1",
+        "from": "p1-c0-b0",
+        "to": "p1-c1-b0",
+        "mainText": "A clear purpose helps shape suitable open day activities.",
+        "notes1": "",
+        "notes2": "",
+        "notes3": "",
+        "measures": [],
+        "evalQuestions": [],
+        "tagIds": []
+      },
+      {
+        "id": "ttl_2",
+        "from": "p1-c0-b1",
+        "to": "p1-c1-b0",
+        "mainText": "Available volunteers make the planned activities feasible.",
+        "notes1": "",
+        "notes2": "",
+        "notes3": "",
+        "measures": [],
+        "evalQuestions": [],
+        "tagIds": []
+      },
+      {
+        "id": "ttl_3",
+        "from": "p1-c1-b0",
+        "to": "p1-c2-b0",
+        "mainText": "Well-planned activities give residents useful reasons to attend and connect.",
+        "notes1": "",
+        "notes2": "",
+        "notes3": "",
+        "measures": [],
+        "evalQuestions": [],
+        "tagIds": []
+      },
+      {
+        "id": "ttl_4",
+        "from": "p1-c1-b1",
+        "to": "p1-c2-b0",
+        "mainText": "Invitations help local residents know the event is for them.",
+        "notes1": "",
+        "notes2": "",
+        "notes3": "",
+        "measures": [],
+        "evalQuestions": [],
+        "tagIds": []
+      }
+    ],
+    "ttLinkNextId": 5,
+    "howLinks": [],
+    "howLinkNextId": 1,
+    "measures": [],
+    "measureNextId": 1,
+    "evalQuestions": [],
+    "eqNextId": 1,
+    "tags": [],
+    "viewSettings": {
+      "thisThen": {
+        "showCounts": false,
+        "showTrafficLights": false,
+        "showPriorities": false,
+        "showHowCounts": false,
+        "showMeasures": false,
+        "showEvalQuestions": false,
+        "showMainText": false,
+        "showLateralHow": false,
+        "showTags": false
+      },
+      "how": {
+        "showNumbering": false,
+        "showTrafficLights": false,
+        "showPriorities": false,
+        "showWhyCounts": false,
+        "showLateralHow": false,
+        "showMeasures": false,
+        "showEvalQuestions": false,
+        "showMainText": false,
+        "showTags": false
+      },
+      "finalOutcomes": {
+        "showTrafficLights": false,
+        "showPriorities": false,
+        "showMeasures": false,
+        "showEvalQuestions": false,
+        "showMainText": false,
+        "showTags": false
+      }
+    },
+    "topRightText": "Reference example",
+    "sourcesInitialized": true
+  }
+}

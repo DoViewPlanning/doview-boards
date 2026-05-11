@@ -1,0 +1,227 @@
+# DoView Boards
+
+**DoView Boards version:** V1.1.0  
+**Release date:** 2026-05-08  
+**Release status:** First public DoView Boards prompt package release
+
+## What are DoView Boards?
+
+DoView Boards are drill-down visual planning and coordination boards based on This→Then causal logic. They represent what needs to happen for action in the world to produce desired outcomes.
+
+DoView Boards have been used for planning and outcomes work in thousands of instances. Their utility and usability have been progressively optimized by Dr Paul Duignan and others using them for planning, coordination, alignment, implementation, performance measurement, delegation, contracting, and evaluation.
+
+The [legacy DoView app](https://github.com/DoViewPlanning/DoViewApp), developed to draw DoView Boards and DoView Strategy/Outcomes diagrams, was used in over 55 countries and won Gartner Cool Vendor recognition. The Gartner citation described the approach as “Sometimes simplicity and elegance define use.” This captures the vision behind the development of DoView Boards.
+
+DoView Boards are not just drawing canvases. They represent outcomes, enabling conditions, actions, implementation work, evidence, measures, evaluation questions, sources, assumptions, risks, and supporting documentation in a structured form.
+
+DoView Planning is a practical application of outcomes theory. Outcomes theory theorizes outcomes systems as any system that identifies, prioritizes, delegates or contracts, implements, measures, attributes, or holds parties to account for outcomes of any type.
+
+The DoView Board prototype app is an app for capturing all of the key elements of any outcomes system as they are conceptualized within outcomes theory.
+
+For more information, see <https://doviewplanning.org>.
+
+DoView Boards can be used for ordinary planning, organisational strategy, project coordination, implementation, monitoring, evaluation, delegation, contracting, performance measurement, human-AI coordination, and more.
+
+The value of DoView Boards is not just that they are visual. Their value is that they structure interaction around the relevant underlying This→Then logic: what must happen for actions, activities, resources, information, decisions, or implementation work to contribute to desired outcomes.
+
+Experimentally, DoView Boards may also provide a visual interface for human-AI coordination and agentic systems. They may help people use AI systems through a structured visual artefact rather than relying only on text chat. This is an experimental use, not a security, governance, or control guarantee.
+
+## What this repository contains
+
+This repository is a practical starting point for users, developers, researchers, experimenters, and organisations that want to understand, generate, implement, or extend DoView Boards.
+
+The V1.1.0 public release includes:
+
+- the DoView Board building prompt;
+- the canonical JavaScript reference engine;
+- the plain Node.js board builder;
+- simple and complex standalone HTML board examples;
+- JSON config examples for developers;
+- the DoView Board minimum specification;
+- developer integration documentation;
+- config reference documentation;
+- security and read-only notes;
+- trademark and attribution guidance;
+- Apache-2.0 licence material.
+- instructions for AI coding agents working with this repository;
+- guidance for humans commissioning AI-built DoView-compatible apps;
+- contribution guidance for developers and users.
+
+This repository does not currently contain the legacy DoView app, PowerPoint board generator prompt, or PDF board examples. The legacy DoView app and its source code are available separately at <https://github.com/DoViewPlanning/DoViewApp>.
+
+
+
+## Building apps from this repository with AI coding agents
+
+This repository can be used by human developers and AI coding agents as a starting point for building DoView-compatible apps, platforms, plugins, integrations, or workflows.
+
+If you are using Claude Code, Codex, Cursor, Replit Agent, or another AI coding agent, start with:
+
+- [`AGENTS.md`](AGENTS.md) — instructions for AI coding agents working in this repository.
+- [`docs/ai-app-build-guidance.md`](docs/ai-app-build-guidance.md) — guidance for humans commissioning an AI-built DoView Boards app.
+
+Do not simply ask an AI agent to “build the app” without specifying the app requirements. Decide whether the app is local-only or hosted, single-user or multi-user, authenticated or unauthenticated, collaborative or non-collaborative, prototype or production, and whether it should reuse the reference engine or implement the specification in another stack.
+
+If an AI coding agent is asked to build a DoView Boards app from this repository and the app requirements are not specified, it should ask for the missing requirements listed in [`docs/ai-app-build-guidance.md`](docs/ai-app-build-guidance.md) before making major architecture choices.
+
+
+## For ordinary users
+
+The easiest way to use DoView Boards is to get the full DoView Boards prompt package from:
+
+<https://doviewplanning.org/prompt>
+
+That page is the recommended starting point for ordinary users. It explains how to use the prompt package with ChatGPT, Claude, or another AI system to create a standalone DoView Board.
+
+This GitHub repository contains the same public release materials for people who want to inspect the files, download a release package, or work with the reference engine and developer documentation.
+
+Ordinary users usually do not need to work directly with the JavaScript engine, builder, config reference, or developer integration guide.
+
+Generated standalone boards are active `.html` files containing JavaScript. Treat them like executable web content, not passive documents. See [`security-and-read-only-notes.md`](docs/security-and-read-only-notes.md).
+
+
+## For developers
+
+Developers can use this repository to:
+
+- inspect the canonical V1.1.0 reference engine;
+- generate standalone board HTML files;
+- create tools that output reference-engine-compatible configs;
+- embed DoView Boards in other systems;
+- build DoView-compatible apps, platforms, plugins, AI tools, integrations, or workflows;
+- implement the DoView-compatible standard in another technical stack.
+
+The package is designed around **one canonical reference engine**. Do not treat the prompt, builder, examples, or engine internals as separate competing standards. The minimum specification defines the DoView-compatible standard; the reference engine demonstrates one working implementation of it.
+
+Developer starting points:
+
+- [`spec/doview-board-minimum-spec.md`](spec/doview-board-minimum-spec.md)
+- [`docs/developer-integration-guide.md`](docs/developer-integration-guide.md)
+- [`docs/config-reference.md`](docs/config-reference.md)
+- [`doview-board-engine.js`](doview-board-engine.js)
+- [`doview-board-builder.js`](doview-board-builder.js)
+
+## Developer quick start
+
+The builder takes a pure JSON board config and the reference engine, then creates a standalone HTML board.
+
+```bash
+node doview-board-builder.js \
+  --engine doview-board-engine.js \
+  --config doview-board-config.json \
+  --out example-board_doview-board_v1.1.0_2026-05-08.html
+```
+
+The config input should be JSON only. It should not include prompt text, builder source, duplicate engine code, or a `DoView.init(...)` JavaScript wrapper.
+
+The generated output is a standalone `.html` board containing active JavaScript.
+
+See [`docs/developer-integration-guide.md`](docs/developer-integration-guide.md) and [`docs/config-reference.md`](docs/config-reference.md) for details.
+
+## DoView-compatible vs Official DoView®
+
+A board, app, platform, tool, or system may be described as **DoView-compatible** when it accurately implements the minimum structure and behaviour described in [`spec/doview-board-minimum-spec.md`](spec/doview-board-minimum-spec.md).
+
+DoView-compatible does **not** mean official, endorsed, certified, approved, quality-assured, affiliated with DoView®, or entitled to use the Official DoView® Badge.
+
+“Official DoView®” status, official endorsement, certification, approval, quality assurance, affiliation, official badge use, and similar claims require written permission from the relevant DoView® rights holder.
+
+To ask about official status, badge use, collaboration, review, quality assurance, or permission, contact DoView Planning at <https://doviewplanning.org/contact>.
+
+See [`docs/trademark-and-attribution.md`](docs/trademark-and-attribution.md).
+
+## Attribution
+
+Please acknowledge DoView Planning and Dr Paul Duignan when you use the approach or create DoViews, DoView Boards, or related DoView-based models.
+
+A suitable general acknowledgment is:
+
+> This work uses the DoView Planning approach and DoView Boards developed by Dr Paul Duignan. See DoViewPlanning.org.
+
+For software, apps, platforms, integrations, AI systems, or developer tools, a suitable acknowledgment is:
+
+> This software supports DoView Boards using the DoView Planning approach developed by Dr Paul Duignan. See DoViewPlanning.org. This software is not affiliated with or endorsed by DoView®.
+
+See [`docs/trademark-and-attribution.md`](docs/trademark-and-attribution.md).
+
+## Licence
+
+The code and materials in this repository are released under the Apache License, Version 2.0, unless a file states otherwise.
+
+Apache-2.0 is a permissive open-source licence. It allows broad reuse, including commercial reuse, subject to its terms.
+
+Trademark rights are separate. The Apache-2.0 licence does not grant permission to claim official DoView® endorsement, certification, approval, quality assurance, affiliation, or badge rights.
+
+See [`LICENSE`](LICENSE), [`NOTICE.md`](NOTICE.md), and [`docs/trademark-and-attribution.md`](docs/trademark-and-attribution.md).
+
+## Security and read-only warning
+
+Generated standalone DoView Boards are active HTML/JavaScript files. Treat them like executable web content, not passive documents.
+
+The V1.1.0 prototype is intended for experimentation, learning, proof-of-concept work, and non-confidential information in low-risk environments. For higher-risk, sensitive, confidential, regulated, public, multi-user, enterprise, or production environments, use security, privacy, compliance, hosting, access-control, audit, data-handling, integration, and deployment arrangements appropriate to that environment.
+
+Read-only mode is a convenience feature. It is not access control, authentication, authorization, encryption, tamper protection, digital signing, audit logging, version control, a permissions system, or a security boundary.
+
+Board Chat is optional. If Board Chat is used, board content may be sent to configured AI endpoints or providers. Users with privacy, confidentiality, security, compliance, API-key, or external-data-sharing concerns should avoid Board Chat unless appropriate arrangements are in place.
+
+See [`docs/security-and-read-only-notes.md`](docs/security-and-read-only-notes.md) and [`SECURITY.md`](SECURITY.md).
+
+## Checksums and release verification
+
+Checksum verification or signed release verification is planned for a future release.
+
+For now, download DoView Boards files only from the official DoViewPlanning GitHub repository or another official DoView source.
+
+Future releases may add files such as:
+
+```text
+CHECKSUMS.txt
+CHECKSUMS.sha256
+docs/verifying-downloads.md
+```
+
+## Examples
+
+The [`examples`](examples/) folder contains two kinds of examples.
+
+### Standalone HTML board examples
+
+These are complete generated DoView Boards. Open them in a browser to see finished boards.
+
+- [`examples/simple-example.html`](examples/simple-example.html)
+- [`examples/complex-example.html`](examples/complex-example.html)
+
+### Developer JSON config examples
+
+These are smaller config examples for developers. They show the structures used by the reference engine and builder. They are not complete standalone boards by themselves.
+
+- [`examples/minimal-config.json`](examples/minimal-config.json)
+- [`examples/this-then-page-example.json`](examples/this-then-page-example.json)
+- [`examples/how-page-example.json`](examples/how-page-example.json)
+- [`examples/documentation-page-example.json`](examples/documentation-page-example.json)
+- [`examples/measures-eqs-example.json`](examples/measures-eqs-example.json)
+
+### Read-only example
+
+- [`examples/read-only-example.html`](examples/read-only-example.html)
+
+Use the HTML examples when you want to see a board. Use the JSON examples when you want to understand or test the config format.
+
+
+
+## Contributing
+
+Contributions, suggestions, issue reports, examples, corrections, and implementation feedback are welcome. Please do not submit confidential, private, client, regulated, personal, commercially sensitive, or security-sensitive board content.
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md).
+
+## Public release history
+
+See [`CHANGELOG.md`](CHANGELOG.md).
+
+V1.1.0 is the first public DoView Boards prompt package release. Earlier internal builds are not part of the public changelog.
+
+## More information
+
+- DoView Planning: <https://doviewplanning.org>
+- Contact DoView Planning: <https://doviewplanning.org/contact>

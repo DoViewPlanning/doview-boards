@@ -1,0 +1,472 @@
+{
+  "title": "Example Measures and Evaluation Questions DoView — After-school Support",
+  "slug": "example-measures-eqs-after-school-support",
+  "subpages": [
+    {
+      "id": "p1",
+      "label": "After-school support logic",
+      "pageType": "this_then",
+      "color": {
+        "bg": "#fef3c7",
+        "bdr": "#fde68a",
+        "tab": "#d97706"
+      },
+      "cols": [
+        {
+          "h": "Support conditions",
+          "boxes": [
+            "Students know support is available",
+            "Mentors prepared for sessions"
+          ]
+        },
+        {
+          "h": "Support delivered",
+          "boxes": [
+            "Students attend regularly",
+            "Helpful study habits practised"
+          ]
+        },
+        {
+          "h": "Student outcomes",
+          "boxes": [
+            "Students feel more confident about learning"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "p2",
+      "label": "Delivery work",
+      "pageType": "how",
+      "howLevel": 1,
+      "cols": [],
+      "howBoxes": [
+        {
+          "id": "H001",
+          "label": "Mentor coordination"
+        },
+        {
+          "id": "H002",
+          "label": "Family communication"
+        }
+      ],
+      "nextHowNum": 3
+    },
+    {
+      "id": "p3",
+      "label": "Example notes",
+      "pageType": "documentation",
+      "cols": []
+    }
+  ],
+  "finalOutcomes": [
+    "Students are better supported to keep learning"
+  ],
+  "sources": [
+    {
+      "title": "Example-only source note",
+      "url": "https://doviewplanning.org"
+    }
+  ],
+  "savedState": {
+    "B": {
+      "p1-c0-b0": {
+        "label": "Students know support is available",
+        "light": "grey",
+        "entries": [],
+        "priority": "",
+        "hasSubpage": false,
+        "detailText": "Students and families understand when, where, and how to use the after-school support.",
+        "borderColor": "",
+        "boxColor": "",
+        "measures": [
+          "M001"
+        ],
+        "evalQuestions": [
+          "EQ001"
+        ],
+        "tagIds": []
+      },
+      "p1-c0-b1": {
+        "label": "Mentors prepared for sessions",
+        "light": "grey",
+        "entries": [],
+        "priority": "",
+        "hasSubpage": false,
+        "detailText": "Mentors have session plans, safeguarding expectations, and escalation routes.",
+        "borderColor": "",
+        "boxColor": "",
+        "measures": [
+          "M002"
+        ],
+        "evalQuestions": [],
+        "tagIds": []
+      },
+      "p1-c1-b0": {
+        "label": "Students attend regularly",
+        "light": "grey",
+        "entries": [],
+        "priority": "",
+        "hasSubpage": false,
+        "detailText": "Regular attendance is the practical bridge between availability and learning benefit.",
+        "borderColor": "",
+        "boxColor": "",
+        "measures": [
+          "M001"
+        ],
+        "evalQuestions": [
+          "EQ002"
+        ],
+        "tagIds": []
+      },
+      "p1-c1-b1": {
+        "label": "Helpful study habits practised",
+        "light": "grey",
+        "entries": [],
+        "priority": "",
+        "hasSubpage": false,
+        "detailText": "Students practise planning, review, asking for help, and finishing tasks.",
+        "borderColor": "",
+        "boxColor": "",
+        "measures": [
+          "M003"
+        ],
+        "evalQuestions": [
+          "EQ003"
+        ],
+        "tagIds": []
+      },
+      "p1-c2-b0": {
+        "label": "Students feel more confident about learning",
+        "light": "grey",
+        "entries": [],
+        "priority": "",
+        "hasSubpage": false,
+        "detailText": "Confidence is treated as an intermediate outcome that should be checked with student voice, not assumed.",
+        "borderColor": "",
+        "boxColor": "",
+        "measures": [
+          "M004"
+        ],
+        "evalQuestions": [
+          "EQ003"
+        ],
+        "tagIds": []
+      },
+      "p2-H001": {
+        "label": "Mentor coordination",
+        "light": "grey",
+        "entries": [],
+        "priority": "",
+        "hasSubpage": false,
+        "detailText": "Coordinate mentors, session plans, and attendance follow-up.",
+        "borderColor": "",
+        "boxColor": "",
+        "measures": [
+          "M002"
+        ],
+        "evalQuestions": [],
+        "tagIds": []
+      },
+      "p2-H002": {
+        "label": "Family communication",
+        "light": "grey",
+        "entries": [],
+        "priority": "",
+        "hasSubpage": false,
+        "detailText": "Keep families informed about attendance, progress, and ways to support learning at home.",
+        "borderColor": "",
+        "boxColor": "",
+        "measures": [
+          "M001"
+        ],
+        "evalQuestions": [
+          "EQ001"
+        ],
+        "tagIds": []
+      },
+      "final-b0": {
+        "label": "Students are better supported to keep learning",
+        "light": "grey",
+        "entries": [],
+        "priority": "",
+        "hasSubpage": false,
+        "detailText": "This final outcome should be interpreted alongside attendance, student voice, and observed learning behaviours.",
+        "borderColor": "",
+        "boxColor": "",
+        "measures": [
+          "M004"
+        ],
+        "evalQuestions": [
+          "EQ003"
+        ],
+        "tagIds": []
+      }
+    },
+    "SP": [
+      {
+        "id": "p1",
+        "label": "After-school support logic",
+        "pageType": "this_then",
+        "color": {
+          "bg": "#fef3c7",
+          "bdr": "#fde68a",
+          "tab": "#d97706"
+        },
+        "cols": [
+          {
+            "h": "Support conditions",
+            "boxes": [
+              "Students know support is available",
+              "Mentors prepared for sessions"
+            ]
+          },
+          {
+            "h": "Support delivered",
+            "boxes": [
+              "Students attend regularly",
+              "Helpful study habits practised"
+            ]
+          },
+          {
+            "h": "Student outcomes",
+            "boxes": [
+              "Students feel more confident about learning"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "p2",
+        "label": "Delivery work",
+        "pageType": "how",
+        "howLevel": 1,
+        "cols": [],
+        "howBoxes": [
+          {
+            "id": "H001",
+            "label": "Mentor coordination"
+          },
+          {
+            "id": "H002",
+            "label": "Family communication"
+          }
+        ],
+        "nextHowNum": 3
+      },
+      {
+        "id": "p3",
+        "label": "Example notes",
+        "pageType": "documentation",
+        "cols": []
+      }
+    ],
+    "FO": [
+      "Students are better supported to keep learning"
+    ],
+    "boardInfo": "Example config showing reusable Measures and Evaluation Questions attached to boxes and This–Then links. Replace example content before real use.",
+    "pageInfo": {
+      "p1": "Measures and Evaluation Questions are associated with selected boxes and with one This–Then link.",
+      "p3": "This Documentation Page shows where supporting notes can sit outside the causal and implementation structures."
+    },
+    "docContent": {
+      "p3": "<h2>Example use</h2><p>This file demonstrates Measures and Evaluation Questions as reusable board-level objects. The example content is illustrative only.</p>"
+    },
+    "ttLinks": [
+      {
+        "id": "ttl_1",
+        "from": "p1-c0-b0",
+        "to": "p1-c1-b0",
+        "mainText": "Awareness of the support makes attendance possible.",
+        "notes1": "Example link note.",
+        "notes2": "",
+        "notes3": "",
+        "measures": [
+          "M001"
+        ],
+        "evalQuestions": [
+          "EQ001"
+        ],
+        "tagIds": []
+      },
+      {
+        "id": "ttl_2",
+        "from": "p1-c0-b1",
+        "to": "p1-c1-b1",
+        "mainText": "Prepared mentors make it more likely that useful study habits are practised.",
+        "notes1": "",
+        "notes2": "",
+        "notes3": "",
+        "measures": [
+          "M002",
+          "M003"
+        ],
+        "evalQuestions": [
+          "EQ003"
+        ],
+        "tagIds": []
+      },
+      {
+        "id": "ttl_3",
+        "from": "p1-c1-b0",
+        "to": "p1-c2-b0",
+        "mainText": "Regular attendance gives students repeated opportunities to build confidence.",
+        "notes1": "",
+        "notes2": "",
+        "notes3": "",
+        "measures": [
+          "M004"
+        ],
+        "evalQuestions": [
+          "EQ002"
+        ],
+        "tagIds": []
+      },
+      {
+        "id": "ttl_4",
+        "from": "p1-c1-b1",
+        "to": "p1-c2-b0",
+        "mainText": "Practised study habits support confidence about learning.",
+        "notes1": "",
+        "notes2": "",
+        "notes3": "",
+        "measures": [
+          "M003",
+          "M004"
+        ],
+        "evalQuestions": [
+          "EQ003"
+        ],
+        "tagIds": []
+      }
+    ],
+    "ttLinkNextId": 5,
+    "howLinks": [
+      {
+        "id": "hwl_1",
+        "from": "p2-H001",
+        "to": "p1-c0-b1",
+        "mainText": "Mentor coordination supports preparation for sessions.",
+        "notes1": "",
+        "notes2": "",
+        "notes3": "",
+        "tagIds": []
+      },
+      {
+        "id": "hwl_2",
+        "from": "p2-H002",
+        "to": "p1-c0-b0",
+        "mainText": "Family communication supports awareness and access.",
+        "notes1": "",
+        "notes2": "",
+        "notes3": "",
+        "tagIds": []
+      }
+    ],
+    "howLinkNextId": 3,
+    "measures": [
+      {
+        "id": "M001",
+        "title": "Students reached by support information",
+        "mainText": "Count or estimate how many students and families received clear support information.",
+        "notes1": "Example measure only.",
+        "notes2": "",
+        "notes3": "",
+        "tagIds": []
+      },
+      {
+        "id": "M002",
+        "title": "Mentor preparation completed",
+        "mainText": "Track whether mentors completed preparation before sessions began.",
+        "notes1": "Example measure only.",
+        "notes2": "",
+        "notes3": "",
+        "tagIds": []
+      },
+      {
+        "id": "M003",
+        "title": "Study habit practice observed",
+        "mainText": "Record whether selected study habits are being practised during sessions.",
+        "notes1": "Example measure only.",
+        "notes2": "",
+        "notes3": "",
+        "tagIds": []
+      },
+      {
+        "id": "M004",
+        "title": "Student confidence rating",
+        "mainText": "Use a short student voice question before and after support periods.",
+        "notes1": "Example measure only.",
+        "notes2": "",
+        "notes3": "",
+        "tagIds": []
+      }
+    ],
+    "measureNextId": 5,
+    "evalQuestions": [
+      {
+        "id": "EQ001",
+        "questionText": "Which students are not hearing about or accessing the support?",
+        "mainText": "Focus on barriers, not just total participation.",
+        "notes1": "Example evaluation question only.",
+        "notes2": "",
+        "notes3": "",
+        "tagIds": []
+      },
+      {
+        "id": "EQ002",
+        "questionText": "What helps students keep attending regularly?",
+        "mainText": "Check whether timing, relationships, transport, or confidence affects attendance.",
+        "notes1": "Example evaluation question only.",
+        "notes2": "",
+        "notes3": "",
+        "tagIds": []
+      },
+      {
+        "id": "EQ003",
+        "questionText": "Which support practices appear to build useful learning confidence?",
+        "mainText": "Compare student feedback with observed session practice.",
+        "notes1": "Example evaluation question only.",
+        "notes2": "",
+        "notes3": "",
+        "tagIds": []
+      }
+    ],
+    "eqNextId": 4,
+    "tags": [],
+    "viewSettings": {
+      "thisThen": {
+        "showCounts": true,
+        "showTrafficLights": false,
+        "showPriorities": false,
+        "showHowCounts": false,
+        "showMeasures": true,
+        "showEvalQuestions": true,
+        "showMainText": true,
+        "showLateralHow": false,
+        "showTags": false
+      },
+      "how": {
+        "showNumbering": true,
+        "showTrafficLights": false,
+        "showPriorities": false,
+        "showWhyCounts": true,
+        "showLateralHow": false,
+        "showMeasures": true,
+        "showEvalQuestions": true,
+        "showMainText": true,
+        "showTags": false
+      },
+      "finalOutcomes": {
+        "showTrafficLights": false,
+        "showPriorities": false,
+        "showMeasures": true,
+        "showEvalQuestions": true,
+        "showMainText": true,
+        "showTags": false
+      }
+    },
+    "topRightText": "Measures and EQ reference example",
+    "sourcesInitialized": true
+  }
+}

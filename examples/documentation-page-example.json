@@ -1,0 +1,172 @@
+{
+  "title": "Example Documentation Page DoView — Small Grant Planning",
+  "slug": "example-documentation-page-small-grant-planning",
+  "subpages": [
+    {
+      "id": "p1",
+      "label": "Small grant logic",
+      "pageType": "this_then",
+      "color": {
+        "bg": "#f5f3ff",
+        "bdr": "#c4b5fd",
+        "tab": "#7c3aed"
+      },
+      "cols": [
+        {
+          "h": "Grant design conditions",
+          "boxes": [
+            "Community priorities understood",
+            "Grant criteria clear"
+          ]
+        },
+        {
+          "h": "Applications improved",
+          "boxes": [
+            "Applicants prepare stronger proposals",
+            "Assessors apply criteria consistently"
+          ]
+        },
+        {
+          "h": "Grant decisions improved",
+          "boxes": [
+            "Funding reaches suitable projects"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "p2",
+      "label": "Grant planning notes",
+      "pageType": "documentation",
+      "cols": []
+    }
+  ],
+  "finalOutcomes": [
+    "Small grant funding creates stronger community value"
+  ],
+  "sources": [
+    {
+      "title": "Example-only source note",
+      "url": "https://doviewplanning.org"
+    }
+  ],
+  "savedState": {
+    "boardInfo": "Example config showing a Documentation Page. The page exists in subpages, while its formatted content is stored in savedState.docContent keyed by the page ID.",
+    "pageInfo": {
+      "p1": "A small This–Then page included so the documentation page sits in a complete board.",
+      "p2": "This Documentation Page stores longer-form notes, assumptions, and review guidance."
+    },
+    "docContent": {
+      "p2": "<h2>Purpose</h2><p>This example shows how a Documentation Page can hold longer explanatory material that does not belong inside a single box.</p><h2>Assumptions</h2><ul><li>Community priorities have been gathered through a suitable engagement process.</li><li>Grant criteria should be clear enough for both applicants and assessors.</li><li>The documentation page should support the board structure, not replace the This–Then logic.</li></ul><h2>Review notes</h2><p>Before using this as a real board, replace example text with project-specific evidence, assumptions, risks, and decision rules.</p>"
+    },
+    "ttLinks": [
+      {
+        "id": "ttl_1",
+        "from": "p1-c0-b0",
+        "to": "p1-c1-b0",
+        "polarity": "positive",
+        "mainText": "Understanding priorities helps applicants prepare proposals that fit community needs.",
+        "notes1": "",
+        "notes2": "",
+        "notes3": "",
+        "measures": [],
+        "evalQuestions": [],
+        "tagIds": []
+      },
+      {
+        "id": "ttl_2",
+        "from": "p1-c0-b1",
+        "to": "p1-c1-b0",
+        "polarity": "positive",
+        "mainText": "Clear criteria help applicants understand what a stronger proposal needs to show.",
+        "notes1": "",
+        "notes2": "",
+        "notes3": "",
+        "measures": [],
+        "evalQuestions": [],
+        "tagIds": []
+      },
+      {
+        "id": "ttl_3",
+        "from": "p1-c0-b1",
+        "to": "p1-c1-b1",
+        "polarity": "positive",
+        "mainText": "Clear criteria support consistent assessment.",
+        "notes1": "",
+        "notes2": "",
+        "notes3": "",
+        "measures": [],
+        "evalQuestions": [],
+        "tagIds": []
+      },
+      {
+        "id": "ttl_4",
+        "from": "p1-c1-b0",
+        "to": "p1-c2-b0",
+        "polarity": "positive",
+        "mainText": "Stronger proposals improve the chance that funding reaches suitable projects.",
+        "notes1": "",
+        "notes2": "",
+        "notes3": "",
+        "measures": [],
+        "evalQuestions": [],
+        "tagIds": []
+      },
+      {
+        "id": "ttl_5",
+        "from": "p1-c1-b1",
+        "to": "p1-c2-b0",
+        "polarity": "positive",
+        "mainText": "Consistent assessment improves grant decisions.",
+        "notes1": "",
+        "notes2": "",
+        "notes3": "",
+        "measures": [],
+        "evalQuestions": [],
+        "tagIds": []
+      }
+    ],
+    "ttLinkNextId": 6,
+    "howLinks": [],
+    "howLinkNextId": 1,
+    "measures": [],
+    "measureNextId": 1,
+    "evalQuestions": [],
+    "eqNextId": 1,
+    "tags": [],
+    "viewSettings": {
+      "thisThen": {
+        "showCounts": false,
+        "showTrafficLights": false,
+        "showPriorities": false,
+        "showHowCounts": false,
+        "showMeasures": false,
+        "showEvalQuestions": false,
+        "showMainText": false,
+        "showLateralHow": false,
+        "showTags": false
+      },
+      "how": {
+        "showNumbering": false,
+        "showTrafficLights": false,
+        "showPriorities": false,
+        "showWhyCounts": false,
+        "showLateralHow": false,
+        "showMeasures": false,
+        "showEvalQuestions": false,
+        "showMainText": false,
+        "showTags": false
+      },
+      "finalOutcomes": {
+        "showTrafficLights": false,
+        "showPriorities": false,
+        "showMeasures": false,
+        "showEvalQuestions": false,
+        "showMainText": false,
+        "showTags": false
+      }
+    },
+    "topRightText": "Documentation reference example",
+    "sourcesInitialized": true
+  }
+}

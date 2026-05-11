@@ -1,0 +1,291 @@
+{
+  "title": "Example How Page DoView — Library Reading Programme",
+  "slug": "example-how-page-library-reading-programme",
+  "subpages": [
+    {
+      "id": "p1",
+      "label": "Reading outcomes",
+      "pageType": "this_then",
+      "color": {
+        "bg": "#eff6ff",
+        "bdr": "#bfdbfe",
+        "tab": "#2563eb"
+      },
+      "cols": [
+        {
+          "h": "Participation conditions",
+          "boxes": [
+            "Children know the programme is available",
+            "Families can attend conveniently"
+          ]
+        },
+        {
+          "h": "Programme experience",
+          "boxes": [
+            "Children attend reading sessions",
+            "Families receive reading support"
+          ]
+        },
+        {
+          "h": "Reading outcomes",
+          "boxes": [
+            "Children read more often",
+            "Reading confidence improves"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "p2",
+      "label": "Level 1 — programme workstreams",
+      "pageType": "how",
+      "howLevel": 1,
+      "cols": [],
+      "howBoxes": [
+        {
+          "id": "H001",
+          "label": "Outreach workstream"
+        },
+        {
+          "id": "H002",
+          "label": "Session delivery workstream"
+        },
+        {
+          "id": "H003",
+          "label": "Family support workstream"
+        }
+      ],
+      "nextHowNum": 4
+    },
+    {
+      "id": "p3",
+      "label": "Level 2 — delivery teams",
+      "pageType": "how",
+      "howLevel": 2,
+      "cols": [],
+      "howBoxes": [
+        {
+          "id": "H001",
+          "label": "School liaison team"
+        },
+        {
+          "id": "H002",
+          "label": "Volunteer readers"
+        },
+        {
+          "id": "H003",
+          "label": "Family workshop facilitators"
+        }
+      ],
+      "nextHowNum": 4
+    },
+    {
+      "id": "p4",
+      "label": "Partner relationships",
+      "pageType": "how",
+      "cols": [],
+      "howBoxes": [
+        {
+          "id": "H001",
+          "label": "Local school partners"
+        },
+        {
+          "id": "H002",
+          "label": "Community venue partners"
+        }
+      ],
+      "nextHowNum": 3
+    }
+  ],
+  "finalOutcomes": [
+    "Children's reading participation strengthened",
+    "Families better able to support reading at home"
+  ],
+  "sources": [
+    {
+      "title": "Example-only source note",
+      "url": "https://doviewplanning.org"
+    }
+  ],
+  "savedState": {
+    "boardInfo": "Example config showing How Page levels, upward/downward How links, and non-up-and-down How links. Replace example content before real use.",
+    "pageInfo": {
+      "p2": "Level 1 How boxes represent major workstreams.",
+      "p3": "Level 2 How boxes represent teams that contribute to Level 1 workstreams.",
+      "p4": "No-level How page showing partner relationships outside the strict up/down hierarchy."
+    },
+    "ttLinks": [
+      {
+        "id": "ttl_1",
+        "from": "p1-c0-b0",
+        "to": "p1-c1-b0",
+        "mainText": "Awareness supports attendance.",
+        "notes1": "",
+        "notes2": "",
+        "notes3": "",
+        "measures": [],
+        "evalQuestions": [],
+        "tagIds": []
+      },
+      {
+        "id": "ttl_2",
+        "from": "p1-c0-b1",
+        "to": "p1-c1-b0",
+        "mainText": "Convenient attendance makes regular session participation more likely.",
+        "notes1": "",
+        "notes2": "",
+        "notes3": "",
+        "measures": [],
+        "evalQuestions": [],
+        "tagIds": []
+      },
+      {
+        "id": "ttl_3",
+        "from": "p1-c1-b0",
+        "to": "p1-c2-b0",
+        "mainText": "Attending sessions supports more frequent reading.",
+        "notes1": "",
+        "notes2": "",
+        "notes3": "",
+        "measures": [],
+        "evalQuestions": [],
+        "tagIds": []
+      },
+      {
+        "id": "ttl_4",
+        "from": "p1-c1-b1",
+        "to": "p1-c2-b1",
+        "mainText": "Family support helps children gain confidence.",
+        "notes1": "",
+        "notes2": "",
+        "notes3": "",
+        "measures": [],
+        "evalQuestions": [],
+        "tagIds": []
+      }
+    ],
+    "ttLinkNextId": 5,
+    "howLinks": [
+      {
+        "id": "hwl_1",
+        "from": "p2-H001",
+        "to": "p1-c0-b0",
+        "mainText": "Outreach work helps children and families know the programme is available.",
+        "notes1": "Upward How-to-This–Then alignment link.",
+        "notes2": "",
+        "notes3": "",
+        "tagIds": []
+      },
+      {
+        "id": "hwl_2",
+        "from": "p2-H002",
+        "to": "p1-c1-b0",
+        "mainText": "Session delivery work creates the opportunity for children to attend reading sessions.",
+        "notes1": "Upward How-to-This–Then alignment link.",
+        "notes2": "",
+        "notes3": "",
+        "tagIds": []
+      },
+      {
+        "id": "hwl_3",
+        "from": "p2-H003",
+        "to": "p1-c1-b1",
+        "mainText": "Family support work helps families receive reading support.",
+        "notes1": "Upward How-to-This–Then alignment link.",
+        "notes2": "",
+        "notes3": "",
+        "tagIds": []
+      },
+      {
+        "id": "hwl_4",
+        "from": "p2-H001",
+        "to": "p3-H001",
+        "mainText": "The school liaison team carries out part of the outreach workstream.",
+        "notes1": "Downward adjacent-level How link from Level 1 to Level 2.",
+        "notes2": "",
+        "notes3": "",
+        "tagIds": []
+      },
+      {
+        "id": "hwl_5",
+        "from": "p3-H002",
+        "to": "p2-H002",
+        "mainText": "Volunteer readers align upward to the session delivery workstream.",
+        "notes1": "Upward adjacent-level How link from Level 2 to Level 1.",
+        "notes2": "",
+        "notes3": "",
+        "tagIds": []
+      },
+      {
+        "id": "hwl_6",
+        "from": "p3-H003",
+        "to": "p2-H003",
+        "mainText": "Workshop facilitators align upward to the family support workstream.",
+        "notes1": "Upward adjacent-level How link from Level 2 to Level 1.",
+        "notes2": "",
+        "notes3": "",
+        "tagIds": []
+      },
+      {
+        "id": "hwl_7",
+        "from": "p3-H001",
+        "to": "p3-H002",
+        "mainText": "School liaison helps coordinate volunteer-reader placement.",
+        "notes1": "Non-up-and-down same-level How link.",
+        "notes2": "",
+        "notes3": "",
+        "tagIds": []
+      },
+      {
+        "id": "hwl_8",
+        "from": "p4-H001",
+        "to": "p3-H001",
+        "mainText": "School partners support the school liaison team.",
+        "notes1": "Non-up-and-down no-level How link.",
+        "notes2": "",
+        "notes3": "",
+        "tagIds": []
+      }
+    ],
+    "howLinkNextId": 9,
+    "measures": [],
+    "measureNextId": 1,
+    "evalQuestions": [],
+    "eqNextId": 1,
+    "tags": [],
+    "viewSettings": {
+      "thisThen": {
+        "showCounts": false,
+        "showTrafficLights": false,
+        "showPriorities": false,
+        "showHowCounts": false,
+        "showMeasures": false,
+        "showEvalQuestions": false,
+        "showMainText": false,
+        "showLateralHow": false,
+        "showTags": false
+      },
+      "how": {
+        "showNumbering": false,
+        "showTrafficLights": false,
+        "showPriorities": false,
+        "showWhyCounts": false,
+        "showLateralHow": false,
+        "showMeasures": false,
+        "showEvalQuestions": false,
+        "showMainText": false,
+        "showTags": false
+      },
+      "finalOutcomes": {
+        "showTrafficLights": false,
+        "showPriorities": false,
+        "showMeasures": false,
+        "showEvalQuestions": false,
+        "showMainText": false,
+        "showTags": false
+      }
+    },
+    "topRightText": "How Page reference example",
+    "sourcesInitialized": true
+  }
+}
