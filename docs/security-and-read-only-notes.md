@@ -1,10 +1,10 @@
 # Security and Read-Only Notes
 
-**DoView Boards version:** V1.2.1  
+**DoView Boards version:** V1.2.6  
 **Release date:** 2026-06-02  
 **Document status:** Developer and deployment guidance for this release
 
-This document explains the main security, deployment, and read-only limitations for the DoView Boards V1.2.1 release. It is intended for people using, sharing, hosting, adapting, or integrating DoView Boards.
+This document explains the main security, deployment, and read-only limitations for the DoView Boards V1.2.6 release. It is intended for people using, sharing, hosting, adapting, or integrating DoView Boards.
 
 ## 1. Main security principle
 
@@ -16,7 +16,7 @@ The Save / Download Board workflow is user-triggered. In browsers that support a
 
 ## 2. Intended-use level of the prototype
 
-The V1.2.1 DoView Board prototype is intended to make it easy to:
+The V1.2.6 DoView Board prototype is intended to make it easy to:
 
 - experiment with DoView Boards;
 - learn how they work;
@@ -119,7 +119,7 @@ Do not rely on local browser storage for security, compliance, evidence, officia
 
 ## 8. Builder and validation limits
 
-The DoView Board Builder is an assembly and technical validation tool. It reads the engine and a pure JSON board config and assembles a final single-file HTML board.
+The DoView Board Builder is an assembly and technical validation tool. It reads the engine and a pure JSON board config and assembles a final single-file HTML board. For AI-generated configs that include top-level builder-only `generationChecks` metadata, it also runs deterministic strict preflight checks and stops HTML output when those checks fail. Older configs use compatibility mode with high-confidence baseline checks. Successful builder outputs include a validation stamp so the Board info popup can show whether builder validation is confirmed.
 
 Builder validation does not replace:
 
@@ -155,4 +155,4 @@ Use of the DoView® Marks, Official DoView® Badge, logos, certification marks, 
 
 ## 12. No warranty
 
-The DoView Boards V1.2.1 release is provided under the applicable licence terms. Review the Apache-2.0 licence and any accompanying notices. You are responsible for deciding whether the software, board files, AI-generated content, hosting, integrations, and deployment arrangements are appropriate for your use case.
+The DoView Boards V1.2.6 release is provided under the applicable licence terms. Review the Apache-2.0 licence and any accompanying notices. You are responsible for deciding whether the software, board files, AI-generated content, hosting, integrations, and deployment arrangements are appropriate for your use case.

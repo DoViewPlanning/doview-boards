@@ -1,4 +1,4 @@
-V1.2.1 2026-06-02
+V1.2.6 2026-06-02
 
 AI DoView Drawing Prompt — Revised (based on Dr Paul Duignan's DoView methodology, doviewplanning.org)
 
@@ -16,7 +16,7 @@ Use only with non-confidential content unless your environment, AI endpoint, hos
 SETUP — Use the matching engine file for this release
 ────────────────────────────────────────────────────────
 
-This prompt requires the matching `doview-board-engine.js` file included with this release package or uploaded by the user. Do not silently substitute a different engine file. If the matching engine file is missing, ask the user to upload the matching release engine file.
+This prompt requires the matching `doview-board-engine.js` and `doview-board-builder.js` files included with this release package or uploaded by the user. Do not silently substitute files from a different release. If either matching file is missing, ask the user to upload the matching release file before returning final standalone HTML.
 
 
 ────────────────────────────────────────────────────────
@@ -55,7 +55,7 @@ The reusable package files have separate roles:
 
 1. `doview-board-engine.js` is the runtime engine. It contains the board UI, CSS, JavaScript behavior, and runtime logic. The final generated board embeds this engine once so the saved board opens as a standalone HTML file.
 2. `doview-board-building-prompt.md` is the AI instruction prompt. It guides board creation but must not be embedded in the final HTML output.
-3. `doview-board-builder.js` is the optional local assembly and technical validation tool. It reads the engine and a pure JSON board config, validates and assembles the final single-file HTML board, and must not be embedded in the final HTML output.
+3. `doview-board-builder.js` is the local assembly and technical validation tool for final generated boards. It reads the engine and a pure JSON board config, runs high-confidence baseline checks, runs additional strict preflight checks when builder-only `generationChecks` metadata is present, completes the board-content URL Sources registry while excluding fixed package/help links, inserts the builder validation stamp after validation passes, validates and assembles the final single-file HTML board, and must not be embedded in the final HTML output.
 4. Example board HTML files, if included, are optional reference examples only. They are not templates to copy and are not boards to amend, overwrite, or continue unless the user explicitly asks to modify that particular example board.
 5. `doview-board-config.json` is a temporary per-board working file. Create a fresh config for each new board from the user's actual topic and causal structure.
 6. Temporary validation scripts and test config files are development or regression aids only. They are not needed for normal board creation, must not be embedded in final board HTML, and should not be treated as package files required by the user.
@@ -93,7 +93,11 @@ Active HTML and deployment:
 - During ordinary low-risk board generation, do not read the full engine unless needed. For security review, release review, provenance checks, or untrusted packages, inspect and verify the engine and builder before use.
 
 Builder-first generation:
-- Prefer the builder path for final standalone boards. The AI should produce pure JSON config for the builder, and the builder should assemble the final HTML.
+- Use the builder path for final generated standalone boards. First generate pure JSON config, include top-level builder-only `generationChecks` metadata reflecting the user's request, run strict builder validation, revise the JSON until it passes, and only then let the builder assemble the final HTML.
+- Do not hand-write final standalone HTML as the primary generation route. Do not bypass the builder. Do not remove `generationChecks` before validation merely to make a failed build pass.
+- A generated board is not complete until builder validation passes and the final HTML contains the builder-inserted `builderValidation` stamp.
+- Do not manually invent, paste, or preserve a fake `builderValidation` stamp. The builder inserts a fresh stamp after validation passes.
+- If content or evidence URLs are used anywhere in visible generated board content, include them in the board-level Sources list. The builder may safely add missing URL registry entries, but it does not invent URLs. Fixed package-controlled help, training, repository, trademark, and support links are not board-content evidence sources merely because the runtime or standard disclaimer displays them.
 - Do not manually embed the prompt, builder source, examples, or duplicate engine code into final board HTML.
 - Preserve engine script integrity. Do not insert board JSON/config/state inside the engine script. Put board config/state only in the correct separate embedded config/state location, normally the body-only `DoView.init(...)` config script assembled by the builder. Preserve the standalone-board initialization scaffolding and script boundaries.
 
@@ -278,7 +282,7 @@ Explicit simple-board requests remain allowed. If the user asks for a simple, qu
 
 If the user asks for evidence, best practice, references, URLs, citations, website content, current facts, or public supporting information, conduct web research before building unless the user explicitly says not to. Use public sources only. Do not invent references. Do not gather private or personal data. Record source URLs in the board Sources list and, where useful, close to the relevant claim in box supporting text, structural link supporting text, Page info, Board info, or Documentation Page content. If the user says they will supply all information, do not conduct web research.
 
-Use this execution sequence for every board: interpret the request; decide whether the topic is simple or substantial; if substantial, do a domain-decomposition pass; decide the board type and page structure; research if required; draft the full board logic; draft pages, columns, boxes, final outcomes, How Pages, Documentation Pages, sources, and supporting text where needed; add explicit links, mapped How Links, Measures, Evaluation Questions, source notes, or Page View options only where requested, clearly implied, or necessary; run the board-quality gate; run the omitted-domain check; run the omitted-regularity check; run any link-density or alignment pass only when stored links are requested or reasonably implied; generate the JSON config only; validate the config mechanically; fix config errors without thinning or genericising the board; run a final pre-assembly review for board quality and completeness; assemble the HTML using `doview-board-builder.js` when available, with hand assembly only as fallback; validate the final HTML assembly; present the final file only if both quality and technical checks pass.
+Use this execution sequence for every board: interpret the request; decide whether the topic is simple or substantial; if substantial, do a domain-decomposition pass; decide the board type and page structure; research if required; draft the full board logic; draft pages, columns, boxes, final outcomes, How Pages, Documentation Pages, sources, and supporting text where needed; add explicit links, mapped How Links, Measures, Evaluation Questions, source notes, or Page View options only where requested, clearly implied, or necessary; run the board-quality gate; run the omitted-domain check; run the omitted-regularity check; run any link-density or alignment pass only when stored links are requested or reasonably implied; generate the JSON config only; validate the config mechanically; fix config errors without thinning or genericising the board; run a final pre-assembly review for board quality and completeness; assemble the final HTML using `doview-board-builder.js`; validate the final HTML assembly and builder-created stamp; present the final file only if both quality and technical checks pass.
 
 Standalone HTML board validation requirements for package/build work:
 - Check standalone engine JavaScript syntax.
@@ -298,7 +302,7 @@ Standalone HTML board validation requirements for package/build work:
 
 The local builder is only an assembly and technical validation tool. It must never be used as a reason to make the board smaller, thinner, more generic, less domain-specific, less causally detailed, less documented, less evidence-supported, or less linked where links were requested or reasonably implied than a hand-built board. All substantive board-quality decisions must be made before the config is finalised; the builder simply packages and validates the completed config. Builder success means only that the HTML was assembled and validated mechanically. It does not prove that the board is a good DoView model. A technically valid but shallow board is not acceptable for a substantial topic; if the builder succeeds but the board fails the omitted-domain, omitted-regularity, or relevant causal-connectivity / link-density check, revise the config and rebuild.
 
-Use the full config-first validation path for substantial topics, complex multi-page boards, researched boards, Documentation-heavy boards, boards with requested or implied links/sources, or boards where the environment appears slow or error-prone. For complex or substantial boards, use a config-first build path. First create `doview-board-config.json` containing only the board config data as pure JSON. Before finalising that config, run the board-quality gate, omitted-domain check, omitted-regularity check, and any causal-connectivity / link-density pass needed for requested or reasonably implied stored links, then fix any thin, generic, under-decomposed, over-regular, isolated, under-documented, weakly sourced, or materially incomplete areas. Validate the config before assembling the final HTML. Before HTML assembly, run the board-quality gate, omitted-domain check, omitted-regularity check, and any relevant causal-connectivity / link-density pass again to confirm the validated config has not lost depth, specificity, natural-shape variation, page count, causal detail, requested/implied links, Measures, Evaluation Questions, Documentation Pages, evidence placement, or any major domain naturally implied by the topic. When `doview-board-builder.js` is available, use it as the default build path. Use hand assembly only as fallback when the builder is unavailable. Do not write, manipulate, or patch the full HTML file until the config passes both board-quality review and technical validation.
+Use the full config-first validation path for substantial topics, complex multi-page boards, researched boards, Documentation-heavy boards, boards with requested or implied links/sources, or boards where the environment appears slow or error-prone. For complex or substantial boards, use a config-first build path. First create `doview-board-config.json` containing only the board config data as pure JSON. Before finalising that config, run the board-quality gate, omitted-domain check, omitted-regularity check, and any causal-connectivity / link-density pass needed for requested or reasonably implied stored links, then fix any thin, generic, under-decomposed, over-regular, isolated, under-documented, weakly sourced, or materially incomplete areas. Validate the config before assembling the final HTML. Before HTML assembly, run the board-quality gate, omitted-domain check, omitted-regularity check, and any relevant causal-connectivity / link-density pass again to confirm the validated config has not lost depth, specificity, natural-shape variation, page count, causal detail, requested/implied links, Measures, Evaluation Questions, Documentation Pages, evidence placement, or any major domain naturally implied by the topic. Use `doview-board-builder.js` for final HTML delivery. If the matching builder is unavailable, preserve the validated JSON config and ask for the matching builder file rather than returning unstamped hand-assembled HTML as a completed board. Do not write, manipulate, or patch the full HTML file until the config passes both board-quality review and technical validation.
 
 For substantial or large boards, the required order is:
 
@@ -317,11 +321,11 @@ For substantial or large boards, the required order is:
 13. Validate the config mechanically.
 14. Fix config errors without thinning, over-regularising, deleting requested/implied links, or genericising the board.
 15. Run a final pre-assembly review for board quality, relevant causal connectivity, and completeness.
-16. Assemble the HTML with `doview-board-builder.js` when available, or use hand assembly only as fallback.
+16. Assemble the final HTML with `doview-board-builder.js`; if the matching builder is unavailable, preserve the config and request it.
 17. Validate the final HTML assembly.
 18. Present the final file only if both quality and technical checks pass.
 
-For simple one-page boards, keep the fast path, but still generate JSON config only, still check that the page is domain-shaped and not generic or under-developed for the request, still assemble using the builder when available or the engine hand-assembly fallback when not, and still run final HTML validation before presenting. Keep genuinely simple boards simple; do not add artificial complexity or extra pages merely to satisfy the richness rule.
+For simple one-page boards, keep the fast path, but still generate JSON config only, still check that the page is domain-shaped and not generic or under-developed for the request, still assemble final HTML using the matching builder, and still run final HTML validation before presenting. Keep genuinely simple boards simple; do not add artificial complexity or extra pages merely to satisfy the richness rule.
 
 Use This–Then Pages for outcomes, conditions, causal logic, and what leads to what. Use How Pages for activities, projects, actions, workstreams, interventions, tasks, and implementation plans. Where a How Box contributes to, enables, protects, or improves a This–Then outcome box, create an existing supported How/This–Then structural link and explain the contribution in the link's supporting text where useful. Do not create new link types.
 
@@ -351,7 +355,7 @@ Example How Page shape, using existing fields only:
   cols: []
 }
 
-When the user asks for a `no-level page`, `no level page`, `no-level How page`, `cross-link page`, `cross-link How page`, `non-hierarchical page`, or `non-hierarchical How page`, create a How Page outside the vertical hierarchy. Set that page's existing `howLevel` field explicitly to `null`; do not omit it, because omission is retained for backward-compatible auto-assignment of numbered levels on older boards. The visible How Page level indicator must show `No level`. Only vertical hierarchy/alignment How Pages may have numbered `howLevel` values. Do not confuse How Page level with stable How Box IDs such as `H001`, `H002`, and so on.
+When the user asks for a `no-level page`, `no level page`, `no-level How page`, `cross-link page`, `cross-link How page`, `non-hierarchical page`, `non-hierarchical How page`, `non-vertical page`, or `non-vertical How page`, create a How Page outside the vertical hierarchy. Set that page's existing `howLevel` field explicitly to `null`; do not omit it, because omission is retained for backward-compatible auto-assignment of numbered levels on older boards. The visible How Page level indicator must show `No level`. Only vertical hierarchy/alignment How Pages may have numbered `howLevel` values. Do not rely on page order to infer a level for a Cross-Link How Page. Do not confuse How Page level with stable How Box IDs such as `H001`, `H002`, and so on.
 
 A numbered vertical How Page may contain or show Cross-Links and still remain numbered. Use `howLevel: null` when the page itself is for lateral, cross-link, or non-hierarchical organisation, not merely because a numbered page has one or more Cross-Links.
 
@@ -389,11 +393,27 @@ If the user explicitly asks for clones, cloned items, clone blocks, live copies,
 
 Use only current engine clone types (`page_title`, `box_title`, `box_main_text`, `measure`, `eval_question`, or `link`) and real keys for existing board objects. Do not satisfy a clone request with plain copied text, paraphrases, ordinary headings, ordinary links, or descriptions of the source items. If the requested clone source is ambiguous, choose sensible relevant source objects from the generated board. Before finalising a board with requested Documentation Page clones, inspect `savedState.docContent` and confirm the relevant page contains valid `.doc-clone` blocks. If it does not, the clone request has failed.
 
-When the user asks for evidence, best practice, assumptions, rationale, supporting information, relationship notes, explanation under links, on links, between boxes, or about why one box leads to another, place that material in the relevant structural link's `mainText` as link Display Text. Use `notes1`, `notes2`, and `notes3` for caveats, assumptions, implementation notes, additional references, or further explanation. Every generated link annotation must be specific to the exact source and target boxes and explain the actual causal or support relationship. Do not repeat interchangeable boilerplate across links, such as `This box links to the next box`, `This supports the next outcome`, `This contributes to progress`, or `The first item helps the second item`. If the same wording could be pasted unchanged onto another link, rewrite it. Do not leave requested link evidence only in Board info, Page info, or a general Documentation Page if it relates to a specific relationship between boxes. Do not overload link labels with long evidence text. Do not imply structural-link URLs are clickable unless the engine already supports linkification there. Do not describe link Traffic Lights as evidence strength. If the user asks for evidence but no evidence or sources have been supplied or researched, do not invent evidence or sources; label the annotation as rationale, assumption, or a suggested evidence need.
+When the user asks for evidence, best practice, assumptions, rationale, supporting information, sources, URLs, relationship notes, explanation under links, on links, between boxes, or about why one box leads to another, place that material in the relevant structural link's `mainText` as link Display Text. Use `notes1`, `notes2`, and `notes3` for caveats, assumptions, implementation notes, additional references, or further explanation. Write every requested `ttLinks[].mainText` value for that individual link. It must name or clearly identify the actual source box and target box, or their specific substantive content, and explain the mechanism by which the source helps cause, enable, support, strengthen, accelerate, protect, or make more likely the target. If evidence is requested, include evidence relevant to that specific relationship or clearly state that the claim is a rationale/assumption where relationship-specific evidence is not available. If URLs are requested, each URL must be relevant to that specific relationship. Do not paste a generic board-level source list into many links. Keep link Display Text concise but substantive.
+
+Specific link rationale is acceptable. Generic page-level rationale, generic dependency wording, board-level source lists pasted into many links, and template text with slight variations are not acceptable. Do not use or closely paraphrase repeated filler such as `This dependency reflects the left-to-right causal logic of the page`, `Public evidence sources for the board include...`, `Page-level outcomes are expected to contribute to final organizational outcomes...`, `Validate using the associated Measures and Evaluation Questions`, `This link shows a relationship between these boxes`, `This box links to the next box`, `This supports the next outcome`, `This contributes to progress`, or `Earlier condition enables the next-stage activity/output/outcome`. Any wording that refers only to the page, board, dependency, causal logic, next stage, final outcome, or organizational outcome without identifying the actual linked content fails. If the same text could be copied unchanged onto another link, rewrite it.
+
+Short example:
+
+Bad: `Rationale/evidence: This dependency reflects the left-to-right causal logic of the page.`
+
+Good: `Supplier clean-energy participation supports lower-carbon product manufacturing because supplier electricity use is a major part of manufacturing emissions; the environmental report identifies supplier clean energy as a core lever for the 2030 climate goal. Source: [specific supplier-clean-energy report URL]`
+
+Bad: `Page-level outcomes are expected to contribute to final organizational outcomes when sustained and scaled.`
+
+Good: `Improved device durability supports stronger customer trust because longer-lasting products reduce replacement pressure and reinforce a premium-value proposition; monitor this relationship through repair rates, customer satisfaction, and product-longevity reporting.`
+
+Do not leave requested link evidence only in Board info, Page info, or a general Documentation Page if it relates to a specific relationship between boxes. Do not overload link labels with long evidence text. Do not imply structural-link URLs are clickable unless the engine already supports linkification there. Do not describe link Traffic Lights as evidence strength. If the user asks for evidence but no evidence or sources have been supplied or researched, do not invent evidence or sources; label the annotation as rationale, assumption, or a suggested evidence need.
 
 When generating link Display Text for a link that also has a link Traffic Lights value, keep the Display Text as plain explanatory prose and begin with the substantive relationship, causal explanation, evidence summary, or user-facing explanation. Do not start generated Link Display Text with duplicated Traffic Light labels, symbols, or status text such as `🟢🟡 GREEN/YELLOW —`, `YELLOW/GREEN —`, `GREEN —`, `RED —`, `Traffic light: Yellow`, or `Status: Yellow/Green`. Do not put inline traffic-light emojis, coloured-dot emojis, or written traffic-light colour/status labels such as `Green:`, `Yellow:`, `Red:`, `Grey:`, `Green/yellow:`, `Yellow/red:`, `Yellow —`, or `Status: Yellow` inside the generated Display Text. Store the single official link Traffic Lights signal only in the link Traffic Lights field. If a relationship has nuance, express it in ordinary words in the Display Text rather than adding extra symbolic or colour-labelled status markers. When continuing an existing board, do not auto-strip old user-entered Display Text unless the user explicitly asks for that cleanup.
 
 Keep box labels compact. Do not auto-fill `detailText` / box Display Text by default and do not add generic filler such as `This box represents...`, `This contributes to...`, `This supports progress...`, or `This is an important step...`. Do not use box Display Text as a dumping ground for link rationale or evidence. If the user asks for rationale or evidence under links, put it on the relevant links. If the user explicitly asks for box-level detail, box descriptions, evidence under boxes, explanations under boxes, notes under boxes, text under boxes, references, or URLs under boxes, place that material in the relevant box's Display Text/supporting text field and make it specific to each box. If only some boxes need Display Text, leave the others blank/omitted. Do not populate every box merely to make the board look detailed. Keep the box label short and outcome/action-focused. Do not overload the box label with evidence or references. Do not put every source URL under every box by default; use supporting text only where it is relevant.
+
+When the user asks for Measures or Evaluation Questions, associate every generated Measure and every generated Evaluation Question with at least one relevant box through the existing box-level `measures` or `evalQuestions` arrays. Choose the most relevant box or boxes based on the item's content. Do not create orphan Measures or Evaluation Questions unless the user explicitly asks for standalone, unattached, general, board-level, or portfolio-level items. Existing supported This–Then link associations may also be used where relevant, but they do not replace the required box association for normally generated Measures or Evaluation Questions.
 
 When sources are used, include each major source in the board-level `sources` array. Also place the relevant source URL close to the specific claim it supports, such as in a box Display Text field, structural link Display Text field, Page info, Board info, or Documentation Page. Do not rely only on a general Sources list when the user asks for evidence attached to specific parts of the board. Do not invent sources.
 
@@ -423,6 +443,59 @@ savedState: {
 ```
 
 Adapt link examples to the current engine's supported link representation. Do not introduce unsupported schema, do not imply structural-link URLs are clickable unless the engine already supports linkification there, and keep examples generic.
+
+BUILDER-ONLY GENERATION CHECKS:
+
+For every newly generated board, include top-level `generationChecks` metadata in the pure JSON config before running the builder. This metadata records what the user requested so the builder can enforce the actual generated config rather than relying only on prompt self-validation.
+
+Use this shape and set the values to match the request:
+
+```JavaScript
+generationChecks: {
+  expectedNoLevelHowPages: ["Competencies Cross-Link"], // IDs or unique labels; use [] when none were requested
+  linkDisplayTextRequested: true,
+  howLinkDisplayTextRequested: true,
+  linkEvidenceUrlsRequested: false,
+  documentationClonesRequested: true,
+  measuresMustAttachToBoxes: true,
+  evalQuestionsMustAttachToBoxes: true,
+  allPageViewOptionsOffUnlessRequested: true,
+  requestedPageViewOptions: {}, // list only explicitly requested view options
+  boxDisplayTextRequested: false,
+  trafficLightsRequested: false,
+  prioritiesRequested: false
+}
+```
+
+When the user explicitly requests unattached board-level Measure or Evaluation Question items, add `standaloneMeasuresRequested: true` or `standaloneEvalQuestionsRequested: true` as applicable. Do not set these merely to bypass attachment validation.
+
+`generationChecks` is builder-only metadata. Keep it in the JSON config until strict builder validation passes. The builder strips it before embedding final standalone HTML. Do not put it in `savedState`. Do not remove it before validation to bypass a builder error.
+
+Required final generation workflow:
+
+1. Generate the pure JSON config.
+2. Include `generationChecks` reflecting the user's request.
+3. Run `doview-board-builder.js`.
+4. If strict preflight fails, revise the JSON rather than hand-writing or patching final HTML.
+5. Run the builder again until validation passes.
+6. Return only the standalone HTML created after validation passes.
+
+MANDATORY FINAL SAVED-STATE VALIDATION GATE:
+
+Before returning any generated board, inspect the actual final JSON config and `savedState`, not only the prose response or visible labels, and run strict builder validation. This is a required pre-output gate. If any check fails, revise the generated JSON and rebuild before output. Do not present an incomplete board as complete or merely explain the failure to the user.
+
+1. How Page levels: inspect every How Page. Any page described, labelled, or intended as a Cross-Link, non-hierarchical, non-vertical, or no-level How Page must have explicit `howLevel: null`, must not have a numbered `howLevel`, and must display `No level`. Numbered vertical hierarchy How Pages keep their requested levels.
+2. Link Display Text: if the user requested Display Text, rationale, evidence, URLs, sources, assumptions, support, relationship notes, or explanation under/on/between links, inspect every actual `savedState.ttLinks[].mainText` value before output. A generated board is not complete if requested link Display Text contains repeated boilerplate. Fix the actual `ttLinks[].mainText` values before returning the board.
+   - Duplicate count check: count repeated non-empty `mainText` values. If the same text appears on more than one link, inspect it. If it is generic or is not truly specific to identical source-target meaning, fail the board. If the same text appears on many links, fail automatically.
+   - Near-duplicate check: inspect repeated sentence frames and small substitutions. Boilerplate with minor wording changes still fails. Treat repeated phrases such as `this dependency`, `left-to-right causal logic`, `page-level outcomes`, and `validate using associated Measures` as strong warning signs.
+   - Source-target specificity check: verify that each link text clearly refers to the actual source and target boxes or their specific content and explains the mechanism between them. A useful pattern is `Because [source box] ..., it supports [target box] ...`. If the text could be copied unchanged onto another link, it fails.
+   - Evidence/URL relevance check: if evidence or URLs were requested, verify that each item supports the specific relationship. Do not paste the same generic board-level source list into many links. If only board-level evidence is available, label the relationship as a rationale/assumption rather than claiming the generic source proves the exact link.
+   - Final fix-before-output rule: if any requested link Display Text fails any check, revise the board before output. Do not return generic link text and merely explain the limitation.
+3. Documentation Page clones: if clones, clone blocks, live copies, or source-linked references were requested, inspect the relevant `savedState.docContent[pageId]`. It must contain valid engine-supported `<div class="doc-clone" data-clone-type="..." data-clone-key="..."></div>` blocks using supported types and keys for real board objects. Invented clone-looking syntax fails validation.
+4. Measure/Evaluation Question attachments: inspect every generated Measure and Evaluation Question. Unless the user explicitly requested standalone or unattached items, each must be associated with at least one relevant box through the existing box-level association arrays. Attach any orphan item before output.
+5. Page View settings: inspect every option in `savedState.viewSettings`. Unless the user explicitly requested a particular Page View item, all Page View options must be `false`. If the user requested one item, enable only that item and any strictly necessary related item, not unrelated overlays.
+6. Box Display Text: if the user did not request box-level Display Text, inspect box `detailText` values. They must be blank or omitted. Clear unnecessary or boilerplate box text and keep link rationale on structural links.
+7. Traffic Lights and priorities: unless explicitly requested or clearly implied by synonymous wording, inspect Page View settings and underlying object fields. Traffic Lights and priorities must not be shown or populated: keep relevant display settings `false` and `light`, `trafficLight`, and `priority` fields blank, neutral, or absent.
 
 If a request is detailed enough to build from but still leaves some choices open, make reasonable assumptions and proceed. Record material assumptions in Board info, Page info, or a Documentation Page. Do not interrupt the build for minor preferences such as exact color choice, page order, wording style, exact number of boxes, or minor naming choices unless the user explicitly requires control over those choices. Do not make assumptions that contradict the user's stated preferences, and do not hide important assumptions.
 
@@ -917,7 +990,7 @@ IMPORTANT: DoView boards use a separate engine file (doview-board-engine.js) tha
 
 CRITICAL: Do NOT embed this prompt, or any part of it, inside the generated HTML file. The final HTML file must begin exactly with `<!DOCTYPE html>`. Do not place comments, advisory text, metadata, prompt text, notes, markdown, or explanatory text before it. The HTML output must contain ONLY the minimal HTML skeleton, the engine code (in the head), and the DoView.init() config (in the body). No prompt text, no build notes, no advisory comments, no metadata scripts, no extra script blocks. Embedding prompt text breaks the board because the prompt contains literal script tags that corrupt the HTML parser. Do not insert board JSON/config/state inside the engine script; keep the engine script intact and place the board config/state only in the separate initialization script.
 
-The reusable local builder file is `doview-board-builder.js`. When it is available, it is the default build path. It reads the engine and a pure JSON board config, validates the config, assembles the single-file HTML output, embeds the engine exactly once in the head, embeds one body-only `DoView.init(...)` config call, validates the assembled HTML, and writes the final board. The generated board remains a single standalone `.html` file; users do not need the builder, prompt, engine, config, or any other file to open the completed board. Use hand assembly only as fallback when the builder is unavailable. The builder does not design, summarise, thin, condense, or quality-rate the board content. Do not reduce page count, domain specificity, causal detail, links, Measures, Evaluation Questions, Documentation Pages, or evidence placement to suit the builder workflow. Builder success is mechanical success only; it is not content success.
+The reusable local builder file is `doview-board-builder.js`. It is the required final-HTML build path. It reads the engine and a pure JSON board config, validates the config, assembles the single-file HTML output, embeds the engine exactly once in the head, embeds one body-only `DoView.init(...)` config call, inserts the builder validation stamp, validates the assembled HTML, and writes the final board. The generated board remains a single standalone `.html` file; users do not need the builder, prompt, engine, config, or any other file to open the completed board. If the matching builder is unavailable, preserve the validated config and request the matching builder instead of presenting unstamped hand-assembled HTML as complete. The builder does not design, summarise, thin, condense, or quality-rate the board content. Do not reduce page count, domain specificity, causal detail, links, Measures, Evaluation Questions, Documentation Pages, or evidence placement to suit the builder workflow. Builder success is mechanical success only; it is not content success.
 
 Builder/content validation guidance: when the builder validates config, it should compute each This–Then Page’s number of columns, boxes-per-column exact pattern, rough near-match signature, column-count distribution, most common exact patterns, most common near-match signatures, final/right-hand terminal-column count, average terminal-column count, number of pages with 4 terminal boxes, number of pages with 5 terminal boxes, number of pages with 6 or more terminal boxes, and whether terminal columns are often the densest columns. It should warn, or fail in extreme ordinary-board cases where practical, if all or nearly all This–Then Pages share a column count, more than two pages share an exact or near-matching shape, the top two exact or near-match patterns cover most pages, most pages are made of tidy three/four-box columns, page-shape variation appears cosmetic rather than structural, any ordinary page has 6 or more terminal boxes without a clear domain reason, more than one ordinary page has 5 or more terminal boxes, most ordinary pages have 4 or more terminal boxes, average terminal-column count exceeds 3.5, terminal columns are often the densest columns, or final-column load appears to be the main source of page-shape variation. Apply these stronger warnings only to ordinary boards with four or more This–Then Pages where appropriate. Do not block one-page boards, small boards, Documentation Pages, How Pages, Final Outcomes pages, user-requested very detailed boards, domains with documented reasons for several parallel terminal outcomes, or explicitly synthetic load-test boards where the user has said content/structure does not matter. The warning should identify the repeated pattern or overloaded terminal column clearly, for example: `Anti-template warning: 8 This–Then Pages all have 4 columns; patterns 4-4-4-4 and 4-4-4-3 cover all pages. Revise page shapes based on domain logic before final output.` Or: `Terminal-column warning: Page "Biodiversity recovery" has 7 terminal boxes. Ordinary This–Then Pages should usually end with 1–3 page-level outcomes. Consolidate, move some outcomes to intermediate columns, split the page, or record a clear domain reason.`
 
@@ -930,27 +1003,27 @@ The builder file may be available in one of these locations (check in this order
 1. User upload: /mnt/user-data/uploads/doview-board-builder.js
 2. Skill folder: /mnt/skills/user/doview/doview-board-builder.js
 3. Current working directory, if already created for this build
-4. If it is not available, use the hand-assembly fallback below with strict validation.
+4. If it is not available, preserve the validated config and ask the user for the matching builder. The hand-assembly section below is diagnostic only.
 
 Generated board output should follow this naming pattern:
 
-`<board-slug>_doview-board_v1.2.1_<yyyy-mm-dd>.html`
+`<board-slug>_doview-board_v1.2.6_<yyyy-mm-dd>.html`
 
 Example:
 
-`labour-2026-nz-election_doview-board_v1.2.1_2026-06-02.html`
+`labour-2026-nz-election_doview-board_v1.2.6_2026-06-02.html`
 
-MANDATORY BUILD PROCESS — follow these exact steps. Use the builder path when `doview-board-builder.js` is available; use the hand-assembly path only as fallback:
+MANDATORY BUILD PROCESS — follow these exact steps. Use the matching builder path for final standalone HTML. The hand-assembly path is diagnostic only:
 
-Step 1 — Locate the engine file and, if available, the builder file:
+Step 1 — Locate the matching engine and builder files:
 Check /mnt/user-data/uploads/ and /mnt/skills/user/doview/ for doview-board-engine.js.
 Copy it to a neutral working path such as /mnt/data/doview-board-engine.js.
 During ordinary low-risk board generation, do not read the full engine unless needed; verify the matching engine exists and use the documented config schema. For security review, release review, provenance checks, or untrusted packages, inspect and verify the engine and builder before use.
 
-If `doview-board-builder.js` is available, copy it to a neutral working path such as /mnt/data/doview-board-builder.js and use the builder path below. Do not include the builder code in the final HTML file.
+Copy `doview-board-builder.js` to a neutral working path such as /mnt/data/doview-board-builder.js and use the builder path below. If the matching builder is unavailable, preserve the validated config and ask the user for it. Do not include the builder code in the final HTML file.
 
 Step 2 — Create and validate the JSON config file:
-Create a working file such as /mnt/data/doview-board-config.json containing ONLY the board config as pure JSON. This file must not contain `DoView.init(...)`, comments, trailing commas, prompt text, engine text, builder text, markdown, or HTML. When the builder is available, keep the working config as JSON and let the builder create the body-only `DoView.init(...)` call. Use `doview-config.js` only for the hand-assembly fallback. Before treating this config as final, run the current board-quality gate, omitted-domain check, omitted-regularity check, and any relevant causal-connectivity / link-density check and improve any thin, generic, over-regular, under-decomposed, under-documented, or weakly sourced sections. Do not add stored links simply because a default broad board was requested.
+Create a working file such as /mnt/data/doview-board-config.json containing ONLY the board config as pure JSON. This file must not contain `DoView.init(...)`, comments, trailing commas, prompt text, engine text, builder text, markdown, or HTML. Keep the working config as JSON and let the builder create the body-only `DoView.init(...)` call. Use `doview-config.js` only for diagnostic hand assembly that will not be presented as a completed board. Before treating this config as final, run the current board-quality gate, omitted-domain check, omitted-regularity check, and any relevant causal-connectivity / link-density check and improve any thin, generic, over-regular, under-decomposed, under-documented, or weakly sourced sections. Do not add stored links simply because a default broad board was requested.
 
 Create a working file such as /mnt/data/doview-board-config.json containing ONLY the board config data:
 
@@ -1045,24 +1118,24 @@ if (errors.length) {
 console.log('DoView config validation passed');
 ```
 
-For the hand-assembly fallback, after `/mnt/data/doview-board-config.json` validates, create `/mnt/data/doview-config.js` containing only `DoView.init(<validated config>);`. Do not attempt to assemble the final HTML for a complex board until the config validates.
+For diagnostic hand assembly only, after `/mnt/data/doview-board-config.json` validates, create `/mnt/data/doview-config.js` containing only `DoView.init(<validated config>);`. Do not return this unstamped diagnostic assembly as the completed final board.
 
-Step 3 — Preferred builder path when `doview-board-builder.js` is available:
+Step 3 — Required builder path for final standalone HTML:
 Before running the builder, rerun the current pre-assembly board-quality gate, omitted-domain check, omitted-regularity check, and any relevant causal-connectivity / link-density check. Only then run the builder:
 
 ```bash
 node /mnt/data/doview-board-builder.js \
   --engine /mnt/data/doview-board-engine.js \
   --config /mnt/data/doview-board-config.json \
-  --out /mnt/user-data/outputs/board-slug_doview-board_v1.2.1_YYYY-MM-DD.html
+  --out /mnt/user-data/outputs/board-slug_doview-board_v1.2.6_YYYY-MM-DD.html
 ```
 
-The builder validates the JSON config and the final HTML assembly before reporting success. Present the generated HTML only if the builder succeeds. If the builder reports a config error or HTML validation error, fix the config/build issue and rerun the builder from a clean output file. Do not present the board unless the final file exists and all builder validation checks pass. Where the environment supports it, also load the output and confirm the visible board/content area is non-empty and shows expected page titles, box titles, Overview cards/items, or final outcomes.
+The builder validates the JSON config and the final HTML assembly before reporting success. Present the generated HTML only if the builder succeeds and the final embedded config contains the builder-inserted validation stamp. If the builder reports a config error or HTML validation error, revise the JSON/config or fix the build issue and rerun the builder from a clean output file. Do not present the board unless the final file exists and all builder validation checks pass. Do not manually invent or paste a stamp. Where the environment supports it, also load the output and confirm the visible board/content area is non-empty and shows expected page titles, box titles, Overview cards/items, or final outcomes.
 
-Step 3 fallback — Assemble the HTML file using bash only if the builder is unavailable:
+Step 3 diagnostic fallback — Assemble HTML using bash only if the builder is unavailable, and do not present it as a completed final board:
 CRITICAL: The engine MUST be in the <head> tag, and the DoView.init() config MUST be in a separate <script> in the <body>. This architecture ensures the Download Board function works correctly — the engine in <head> survives when body content is replaced at runtime. Do not paste config/state into the engine script, do not split the engine script with embedded JSON, and do not damage the standalone initialization scaffolding or script boundaries.
 
-Run this exact bash sequence ONCE — if you need to retry, delete the output file first (`rm /mnt/user-data/outputs/boardname_doview.html`) and run ALL commands again from the beginning. Never re-run individual cat/echo lines, never append individual sections to an existing partially built file, and never present the board unless the final file exists and all critical checks pass:
+Run this exact bash sequence ONCE — if you need to retry, delete the output file first (`rm /mnt/user-data/outputs/boardname_doview.html`) and run ALL commands again from the beginning. Never re-run individual cat/echo lines, never append individual sections to an existing partially built file, and never present this unstamped diagnostic output as a completed board:
 ```bash
 # Create HTML with engine in <head>
 cat > /mnt/user-data/outputs/boardname_doview.html << 'HEADER'
@@ -1122,18 +1195,18 @@ BODY_OPEN=$(grep -cx '<body>' "$FILE")
 
 [ $FAIL -eq 0 ] && echo "ALL CHECKS PASSED" || echo "CHECKS FAILED — delete file and redo Steps 2-3"
 ```
-If any check shows FAIL, delete the output file and redo Steps 2–3 from scratch. Do NOT retry individual cat commands — always delete and rebuild the whole file. Do not present the board unless the final file exists and critical checks pass.
+If any check shows FAIL, delete the output file and redo Steps 2–3 from scratch. Do NOT retry individual cat commands — always delete and rebuild the whole file. These checks help diagnose assembly only; they do not turn an unstamped hand assembly into a completed board.
 
-If builder or fallback HTML assembly fails, times out, or cannot be completed, do not lose the board design. Preserve the validated config and return the config to the user if necessary. Explain that the final self-contained HTML assembly failed, include any useful error or validation output, and do not claim the board file was successfully created unless the final HTML exists and passes validation.
+If builder or diagnostic fallback HTML assembly fails, times out, or cannot be completed, do not lose the board design. Preserve the validated config and return the config to the user if necessary. Explain that the final self-contained HTML assembly failed, include any useful error or validation output, and do not claim the board file was successfully created unless builder-produced final HTML exists, passes validation, and contains the builder-created stamp.
 
 IMPORTANT: Run the Step 3 bash commands exactly once. If you need to retry, delete the output file first and run ALL commands again from the beginning. Appending the engine a second time is the most common assembly error.
 
-Step 5 — Present the file using present_files.
+Step 5 — Present the builder-produced, stamped file using present_files.
 
 This approach means:
 - The AI generates only ~100 lines of config (not 800+ lines of engine)
 - The output HTML is fully self-contained (works in artifact panel AND when downloaded)
-- The engine code is never in the AI's output — it flows from file to file via the builder or fallback bash
+- The engine code is never in the AI's output — it flows from file to file via the builder
 - The HTML file contains NOTHING except the engine script, the config script, and the minimal HTML skeleton shown above — no embedded prompts, no metadata, no extra script blocks
 - A final board that opens blank, opens with only chrome, or fails initialization is not complete; preserve diagnostics, report validation limitations, and rebuild from the validated config rather than presenting it as done.
 
@@ -1248,6 +1321,7 @@ SOURCES ON NEW BOARDS
   2. "Sources provided by the user" — include this line ONLY if user-provided documentation (uploaded files, pasted documents, or otherwise user-supplied source material) was actually used to create the board. If no user-provided documentation was used, OMIT this line. Do not invent it.
   3. Specific internet sources actually used — include each as a separate { title, url } entry, ONLY if you actually used that internet source to inform the board content. Do not invent internet sources. Do not include URLs you have not actually used. Do not include URLs you cannot verify. If no internet sources were used, OMIT this section entirely.
 - Duplicates are not permitted. The DoView Boards information source must appear exactly once. The "Sources provided by the user" line must appear at most once.
+- Every content or evidence URL used anywhere in visible generated board content must also be represented in the board-level Sources list. Do not invent URLs. The builder may safely auto-add a missing URL using the URL itself as the fallback title. Do not add fixed package-controlled help, training, repository, trademark, or support URLs merely because the runtime or standard disclaimer displays them.
 - Do NOT add any other entries beyond these three categories on a new board. In particular: do not add the contents of this prompt, do not add build notes, do not add methodology summaries, do not add the engine version, and do not add internal AI commentary.
 - The engine preserves saved sources for existing boards (the seed-once mechanism only seeds the first source when sources is empty AND sourcesInitialized is false; it never overwrites existing entries). This rule applies to NEW boards only and does not change how existing boards load.
 
@@ -1364,7 +1438,7 @@ DOVIEW BOARD FEATURES (handled by the engine)
 The engine provides all of the following automatically. You do NOT need to implement these — just generate the config. This list is for reference so you understand what the board can do:
 
 Visual design:
-- Orange header (#F5A623) with title left, "Board info" link, "Measures" link, "Eval Questions" link, "Links" link, "🔍 Search" link, and "Get training" link (opens https://doviewplanning.org/offerings in a new tab/window; tooltip "Want training? Get help using DoView Boards"; non-editable; appears in normal editable boards and in read-only copies); "SEE. PLAN. DO.™ V1.2.1" on the first right-hand line; the text-only Official DoView® Badge Standards-Compliant Board Structure on the second and third right-hand lines (white text, white rounded border, orange background, no logo, no icon — see "Official DoView® Badge Standards-Compliant Board Structure" below)
+- Orange header (#F5A623) with title left, "Board info" link, "Measures" link, "Eval Questions" link, "Links" link, "🔍 Search" link, and "Get training" link (opens https://doviewplanning.org/offerings in a new tab/window; tooltip "Want training? Get help using DoView Boards"; non-editable; appears in normal editable boards and in read-only copies); "SEE. PLAN. DO.™ V1.2.6" on the first right-hand line; the text-only Official DoView® Badge Standards-Compliant Board Structure on the second and third right-hand lines (white text, white rounded border, orange background, no logo, no icon — see "Official DoView® Badge Standards-Compliant Board Structure" below)
 - Page-info bar: the bar below the header lays out as a flex row with the existing page name, Page info, View, etc. on the left, and an optional board-level Top right text right-justified on the right (see "Top right text" below). The Top right text is the same across all pages, plain text only, click-to-edit in editable boards, view-only in read-only copies, and persists with the board. When no Top right text exists, the right-hand side of the page-info bar shows nothing at all in both editable boards and read-only copies ( replaces the earlier "+ Add top right text" affordance so finished boards do not look unfinished). Top right text can be added or edited from Board info edit mode, where a compact "Top right text (optional)" field edits the same saved-state value (see "Board info / Page info" below).
 - Top right text: a board-level optional short plain-text annotation or disclaimer (e.g. Draft, Illustrative only, Confidential, Version for contractor review, Not yet approved). It is shown right-justified in the page-info bar across all pages — same text on every page. Plain text only — no rich text, no links. In normal editable boards, clicking the existing text opens a small modal with a text input plus Save / Clear / Cancel buttons; when no Top right text exists, no affordance appears in the page-info bar — instead, Top right text is added or edited from a compact "Top right text (optional)" field inside Board info edit mode, which writes to the same topRightText saved-state value. In read-only copies, the text is visible but not clickable/editable. The AI may also supply Top right text when creating a board (via savedState.topRightText). Long text is truncated gracefully via CSS ellipsis at a sensible max-width so it does not crowd out page controls. The text is saved with the board (savedState.topRightText), persists through Save / Download Board, Copy HTML Board, Create Read-Only Copy, localStorage, and DOVIEW-STATE snapshots, and defaults to '' for older boards (backward compatible).
 - Official DoView® Badge Standards-Compliant Board Structure: a non-editable text-only badge in the top-right of the orange header, on the second and third lines below the SEE. PLAN. DO.™ + version line. Two lines of text — "Official DoView® Badge" (slightly larger) and "Standards-Compliant Board Structure" (slightly smaller). White text, white rounded border, compact and readable, orange background matching the top bar. No logo, no icon — text only; the DoView trademark logo is not generated, redrawn, approximated, or embedded in this build. Non-editable — appears in normal editable boards and in read-only copies, travels with saved/exported boards, has no user control to remove or change, and prints if the header/branding area prints. Clicking the badge opens a non-editable info popup titled "Official DoView® Badge Standards-Compliant Board Structure" with a Close button (no editable fields). Popup body explains that this DoView Board app's structure (not its content) has received the badge, that the DoView methodology is open and may be implemented elsewhere with acknowledgment, that the badge and DoView trademark may not be used or implied as endorsed/official without authorisation, and how to get in touch about badge assessment. The popup ends with one clickable link — visible text "doviewplanning.org/trademarkuse" linking to https://doviewplanning.org/trademarkuse (The previously-included second trademark URL "doviewplanning.org/trademark" has been removed from the popup; only doviewplanning.org/trademarkuse remains as the final clickable link). (The visible badge wording has been reordered from "Official DoView® Standards-Compliant Board Structure Badge" to "Official DoView® Badge Standards-Compliant Board Structure" — line 1 now reads "Official DoView® Badge" and line 2 reads "Standards-Compliant Board Structure"; the popup heading and body wording use the new ordering accordingly. Badge placement, click behavior, popup body, popup link, and broader certification/badge behavior are unchanged. Internal CSS class names and code-side identifiers are intentionally left unchanged to keep the change wording-only.) Boundary: this is the reserved official badge for this official DoView release; this release does not create a broader certification system, does not imply third-party boards/tools may use the badge unless authorised, and does not add logo/image handling.
@@ -1438,7 +1512,7 @@ Measures and Evaluation Questions:
 - Measures and Evaluation Questions are preserved in saved boards, localStorage, and DOVIEW-STATE snapshots.
 - When a Measure or Evaluation Question is edited, created, associated, dis-associated, or deleted, all visible references (under-box display, entry panel associated items, clones) update immediately without requiring the user to leave the page and come back. The current page, open box selection, and scroll position are preserved as far as practical. (user-facing wording uses associated/association for Measures and Evaluation Questions; structural box-to-box links keep links/linked terminology.)
 - Measures and Evaluation Questions can also be attached to This–Then links (see Link details). Deleting a Measure or Evaluation Question also removes any links to it held on This–Then links, not only the links held on boxes. How links are NOT supported for this feature in the current build.
-- The current release does not include clones inside box notes or Measure/EQ notes, named/saved multiple views, per-page custom view overrides, reordering of under-box display types, or richer list browsing and link panes. These are outside the current V1.2.1 feature set.
+- The current release does not include clones inside box notes or Measure/EQ notes, named/saved multiple views, per-page custom view overrides, reordering of under-box display types, or richer list browsing and link panes. These are outside the current V1.2.6 feature set.
 
 View system:
 - Board-wide Page View settings, separate per page type (one set for all This–Then Pages, one set for all How Pages, one set for the Final Outcomes page).

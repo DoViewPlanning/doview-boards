@@ -1,6 +1,6 @@
 # Instructions for AI Coding Agents
 
-**DoView Boards version:** V1.2.1  
+**DoView Boards version:** V1.2.6  
 **Release date:** 2026-06-02  
 **Document status:** Instructions for AI coding agents working with this repository
 
@@ -29,7 +29,7 @@ When interpreting this repository:
 
 1. Treat [`spec/doview-board-minimum-spec.md`](spec/doview-board-minimum-spec.md) as the DoView-compatible standard for this release.
 2. Treat [`spec/this-then-page-rules.md`](spec/this-then-page-rules.md) as the expanded This–Then Page modelling guidance. If it appears to conflict with the minimum specification, the minimum specification controls.
-3. Treat [`doview-board-engine.js`](doview-board-engine.js) as the canonical V1.2.1 reference implementation.
+3. Treat [`doview-board-engine.js`](doview-board-engine.js) as the canonical V1.2.6 reference implementation.
 4. Treat [`docs/config-reference.md`](docs/config-reference.md) as the technical reference for the reference-engine config shape.
 5. Treat [`doview-board-builder.js`](doview-board-builder.js) as the reference local builder for assembling standalone HTML boards from JSON config.
 6. Treat the files in [`examples/`](examples/) as examples of correct structure, not as limits on what DoView Boards can contain.

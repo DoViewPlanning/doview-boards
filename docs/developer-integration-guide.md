@@ -1,10 +1,10 @@
 # DoView Board Developer Integration Guide
 
-**DoView Boards version:** V1.2.1  
+**DoView Boards version:** V1.2.6  
 **Release date:** 2026-06-02  
-**Document status:** Developer integration guide for the V1.2.1 DoView Boards prompt package release
+**Document status:** Developer integration guide for the V1.2.6 DoView Boards prompt package release
 
-This guide explains how developers can use, inspect, embed, adapt, or build on the V1.2.1 DoView Board reference package.
+This guide explains how developers can use, inspect, embed, adapt, or build on the V1.2.6 DoView Board reference package.
 
 It should be read with:
 
@@ -15,7 +15,7 @@ It should be read with:
 
 ## 1. What is in the reference package
 
-The V1.2.1 release includes:
+The V1.2.6 release includes:
 
 - [`doview-board-building-prompt.md`](../doview-board-building-prompt.md) — the prompt package for creating DoView Board configs and standalone boards with AI systems;
 - [`doview-board-engine.js`](../doview-board-engine.js) — the canonical JavaScript reference engine for this release;
@@ -67,7 +67,7 @@ A developer can also implement the DoView-compatible standard without using the 
 
 ## 4. Reference engine status
 
-[`doview-board-engine.js`](../doview-board-engine.js) is the canonical reference implementation for V1.2.1.
+[`doview-board-engine.js`](../doview-board-engine.js) is the canonical reference implementation for V1.2.6.
 
 It is intended to:
 
@@ -195,7 +195,7 @@ Then run:
 node doview-board-builder.js \
   --engine doview-board-engine.js \
   --config doview-board-config.json \
-  --out example-doview-board_doview-board_v1.2.1_2026-06-02.html
+  --out example-doview-board_doview-board_v1.2.6_2026-06-02.html
 ```
 
 No npm install is required. The builder uses plain Node.js built-in modules.
@@ -226,6 +226,10 @@ standalone HTML board
 
 The builder also appends the package-controlled Documentation Page titled `Using DoView Boards and Disclaimer` to standalone board output and avoids adding a duplicate if that Documentation Page is already present.
 
+For AI-generated configs, include top-level builder-only `generationChecks` metadata. The builder automatically runs strict preflight validation when this metadata is present, reports safe structural auto-fixes, exits non-zero on hard failures, and does not write standalone HTML until the config passes. The metadata is stripped before the config is embedded in final HTML. Older configs without `generationChecks` continue to use compatibility mode, which still runs high-confidence baseline checks. Successful outputs receive a builder-inserted `builderValidation` stamp with the accurate mode.
+
+The builder also scans visible generated board content for URLs, deduplicates URL-bearing source entries, and auto-adds missing content/evidence URLs to the board-level Sources registry using the URL as a fallback title. Fixed package-controlled help, training, repository, trademark, and support URLs are excluded from auto-addition so they do not inflate a board's evidence Sources list. The builder does not invent URLs.
+
 The generated HTML board should contain:
 
 - one embedded copy of the engine in the HTML head;
@@ -246,7 +250,7 @@ The builder expects generated board filenames to follow this pattern:
 Example:
 
 ```text
-example-doview-board_doview-board_v1.2.1_2026-06-02.html
+example-doview-board_doview-board_v1.2.6_2026-06-02.html
 ```
 
 The builder may warn if the output filename does not match this pattern.
@@ -289,7 +293,7 @@ For final distributed boards, prefer the builder path so the output is assembled
 
 ## 10. Important direct-embedding note
 
-The V1.2.1 engine takes control of the document body when initialized. It injects the board interface into `document.body`.
+The V1.2.6 engine takes control of the document body when initialized. It injects the board interface into `document.body`.
 
 For that reason, if you want to place a DoView Board inside a larger app, the safest simple pattern is usually to embed a standalone generated board in a sandboxed iframe, rather than initializing the engine directly inside a page that also contains other application UI.
 
@@ -297,7 +301,7 @@ Example:
 
 ```html
 <iframe
-  src="example-doview-board_doview-board_v1.2.1_2026-06-02.html"
+  src="example-doview-board_doview-board_v1.2.6_2026-06-02.html"
   sandbox="allow-scripts allow-downloads"
   style="width: 100%; height: 800px; border: 1px solid #ddd;">
 </iframe>
@@ -349,7 +353,7 @@ Use [`config-reference.md`](config-reference.md) for the detailed field-by-field
 
 ## 12. Public surfaces developers may rely on
 
-For V1.2.1 reference-engine work, developers may rely on these public surfaces:
+For V1.2.6 reference-engine work, developers may rely on these public surfaces:
 
 - the release files named in this repository;
 - the `DoView.init(config)` entry point;
@@ -392,8 +396,10 @@ When generating configs from your own app, AI system, script, or backend:
 6. keep This–Then, How, Documentation, and Final Outcomes conceptually separate;
 7. store rich state in `savedState`;
 8. include `savedState.viewSettings` for generated standalone boards;
-9. run the builder or your own validation before distribution;
-10. review board quality, sources, sensitivity, and confidentiality before publication.
+9. include builder-only `generationChecks` metadata for AI-generated configs;
+10. run the builder, revise failed JSON, and rebuild until strict preflight passes;
+11. confirm the final HTML contains the builder-created validation stamp and complete visible-URL Sources registry;
+12. review board quality, sources, sensitivity, and confidentiality before publication.
 
 Technical validity does not prove that the board is a good DoView model. For substantive quality, use the checklist in [`doview-board-minimum-spec.md`](../spec/doview-board-minimum-spec.md) and the expanded This–Then Page modelling rules in [`this-then-page-rules.md`](../spec/this-then-page-rules.md).
 
@@ -454,7 +460,9 @@ They may be associated with:
 
 Do not treat Measures and Evaluation Questions merely as display text. They should keep stable IDs and associations so that they can be reused, shown, hidden, searched, exported, and reviewed.
 
-For a single box, do not attach the same Measure ID or Evaluation Question ID more than once. The V1.2.1 reference engine normalizes duplicate box-level Measure/Evaluation Question references on load/save while preserving the existing saved-state fields.
+For a single box, do not attach the same Measure ID or Evaluation Question ID more than once. The V1.2.6 reference engine normalizes duplicate box-level Measure/Evaluation Question references on load/save while preserving the existing saved-state fields.
+
+Box-level `savedState.B[boxId].measures` and `savedState.B[boxId].evalQuestions` arrays are valid associations and are the runtime source of truth for box association display. The runtime recognizes them for This-Then Boxes, How Boxes, and Final Outcome boxes even when a generated config does not include the optional redundant `savedState.SP` copy.
 
 How Boxes, Measures, and Evaluation Questions may also carry an optional `displayId`. This is an editable user-facing identifier only; keep internal links and references on the stable `id`.
 
@@ -564,14 +572,14 @@ Trademark rights are separate. Apache-2.0 does not grant permission to claim off
 
 ## 26. Versioning and compatibility
 
-This guide targets DoView Boards V1.2.1.
+This guide targets DoView Boards V1.2.6.
 
 When building on the reference package, state which DoView Boards version and specification version your implementation targets.
 
 Suggested wording:
 
 ```text
-This tool targets the DoView Boards V1.2.1 minimum specification.
+This tool targets the DoView Boards V1.2.6 minimum specification.
 ```
 
 If you adapt the reference engine, keep your own release history and clearly identify changes that may affect config compatibility, security, Board Chat behaviour, saved state, or generated-board output.

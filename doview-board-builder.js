@@ -2,7 +2,7 @@
 'use strict';
 
 /*
-DoView Board Builder V1.2.1
+DoView Board Builder V1.2.6
 Public release: 2026-06-02
 Plain Node.js local builder for assembling validated config-first DoView boards into single-file HTML outputs. No external npm packages.
 See CHANGELOG.md for release history and security notes.
@@ -11,7 +11,8 @@ See CHANGELOG.md for release history and security notes.
 const fs = require('fs');
 const path = require('path');
 
-const BUILDER_VERSION = 'V1.2.1';
+const BUILDER_VERSION = 'V1.2.6';
+const VALIDATION_VERSION = 'V1.2.6';
 const EXPECTED_FILENAME_RE = /^[a-z0-9][a-z0-9-]*_doview-board_[vV]\d+\.\d+\.\d+_\d{4}-\d{2}-\d{2}\.html$/;
 
 const SIMPLE_DEFAULT_VIEW_SETTINGS = {
@@ -21,6 +22,26 @@ const SIMPLE_DEFAULT_VIEW_SETTINGS = {
 };
 const PRIORITY_VALUES = ['A', 'B', 'C', 'D', 'E', 'BAU'];
 const TRAFFIC_LIGHT_VALUES = ['green', 'greenYellow', 'yellow', 'yellowRed', 'red', 'grey'];
+const DOC_CLONE_TYPES = ['page_title', 'box_title', 'box_main_text', 'measure', 'eval_question', 'link'];
+const NO_LEVEL_HOW_PAGE_RE = /\b(?:cross[\s-]?link|non[\s-]?hierarchical|non[\s-]?vertical|no[\s-]?level)\b/i;
+const LINK_TEXT_BANNED_PATTERNS = [
+  /left[\s-]?to[\s-]?right causal logic/i,
+  /this dependency reflects/i,
+  /page[\s-]?level outcomes?/i,
+  /final organi[sz]ational outcomes?/i,
+  /upstream work enables or constrains/i,
+  /next implementation condition/i,
+  /validate using the associated measures?/i,
+  /this link shows a relationship/i,
+  /this box links to the next box/i,
+  /this supports the next outcome/i,
+  /public evidence sources for the board include/i
+];
+const HOW_LINK_TEXT_BANNED_PATTERNS = [
+  /supports implementation/i,
+  /capabilit(?:y|ies) enables? activit(?:y|ies)/i,
+  /supports? the next (?:activity|implementation item|workstream)/i
+];
 const CANONICAL_DISCLAIMER_TITLE = 'Using DoView Boards and Disclaimer';
 const CANONICAL_DISCLAIMER_TEXT = `Using DoView Boards and Disclaimer
 
@@ -49,6 +70,16 @@ Disclaimer
 DoView Boards are provided for planning and illustrative purposes only. The content of any DoView Board does not constitute professional advice of any kind, including but not limited to legal, financial, medical, strategic, or organizational advice. No warranty is given as to the accuracy, completeness, or fitness for purpose of any content. The usual precautions for AI-generated material need to be taken. Dr Paul Duignan, DoViewPlanning.org, The Ideas Web Ltd, DoView Corporation Ltd and any associated parties accept no liability whatsoever for any loss, damage, or adverse outcome arising directly or indirectly from the use of, or reliance on, any DoView Board or its contents. Use entirely at your own risk.
 
 Please note that this DoView Board is in an interactive HTML file and contains active JavaScript so the board can work. Only open boards from sources you trust. Read-only copies disable editing through the board interface but are not security protection.`;
+const STANDARD_NON_CONTENT_SOURCE_URLS = [
+  'https://doviewplanning.org/doviewboardsuse',
+  'https://doviewplanning.org/help',
+  'https://doviewplanning.org/offerings',
+  'https://github.com/DoViewPlanning/doview-boards',
+  'https://doviewplanning.org/trademarkuse',
+  'https://doviewplanning.org/contact',
+  'https://doviewplanning.org/doviewboards',
+  'https://doviewplanning.org/collaborate'
+];
 function simpleDefaultViewSettings() { return JSON.parse(JSON.stringify(SIMPLE_DEFAULT_VIEW_SETTINGS)); }
 
 function usage() {
@@ -62,7 +93,7 @@ function usage() {
     '  node doview-board-builder.js \\',
     '    --engine doview-board-engine.js \\',
     '    --config doview-board-config.json \\',
-    '    --out labour-2026-nz-election_doview-board_v1.2.1_2026-06-02.html',
+    '    --out labour-2026-nz-election_doview-board_v1.2.6_2026-06-02.html',
     '',
     'Inputs:',
     '  --engine   DoView engine JavaScript file, usually doview-board-engine.js',
@@ -73,6 +104,7 @@ function usage() {
     '  - The config must be JSON only, not DoView.init({...}) JavaScript.',
     '  - The generated board is a standalone HTML file containing active JavaScript; treat it like executable web content, not a passive document.',
     '  - Prefer this builder path for final boards: provide pure JSON config and let a vetted, known-good engine and builder assemble the HTML.',
+    '  - When top-level generationChecks metadata is present, strict preflight validation runs automatically and builder-only metadata is stripped before HTML output.',
     '  - Do not manually embed prompt text, builder source, examples, or duplicate engine code into final board HTML.',
     '  - For production, enterprise, or multi-user deployment, use sandboxing, isolated origins, or another restricted viewer for generated boards.',
     'Prototype/intended-use notice: the prototype is designed for experimentation, learning, proof-of-concept uses, and non-confidential information in low-risk environments; for higher-risk, sensitive, regulated, public, multi-user, enterprise, or production use, put in place security, privacy, compliance, hosting, access-control, audit, data-handling, integration, and deployment arrangements appropriate to the intended environment. See https://doviewplanning.org/trademarkuse for DoView trademark-use guidance.',
@@ -258,6 +290,536 @@ function collectKnownBoxIds(cfg, warnings) {
   return ids;
 }
 
+function cloneJson(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+function normalizeSearchText(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function pushAutoFix(autoFixes, message) {
+  if (autoFixes.indexOf(message) === -1) autoFixes.push(message);
+}
+
+function reportModeIssue(strict, errors, warnings, message) {
+  if (strict) errors.push(message);
+  else warn(warnings, message);
+}
+
+function howPageCopies(cfg) {
+  const copies = [];
+  if (Array.isArray(cfg.subpages)) copies.push({ name: 'subpages', pages: cfg.subpages });
+  if (cfg.savedState && Array.isArray(cfg.savedState.SP)) copies.push({ name: 'savedState.SP', pages: cfg.savedState.SP });
+  return copies;
+}
+
+function setNoLevelHowPage(cfg, pageId, pageLabel, autoFixes) {
+  let changed = false;
+  howPageCopies(cfg).forEach(function (copy) {
+    copy.pages.forEach(function (p) {
+      if (!p || p.id !== pageId || (p.pageType || 'this_then') !== 'how') return;
+      if (p.howLevel !== null) {
+        p.howLevel = null;
+        changed = true;
+      }
+    });
+  });
+  if (changed) {
+    pushAutoFix(autoFixes, 'Normalized Cross-Link/no-level How Page "' + pageLabel + '" to howLevel: null.');
+  }
+}
+
+function enforceNoLevelHowPages(cfg, checks, strict, errors, warnings, autoFixes) {
+  const pages = Array.isArray(cfg.subpages) ? cfg.subpages.filter(function (p) {
+    return p && (p.pageType || 'this_then') === 'how';
+  }) : [];
+  const markedIds = new Set();
+  pages.forEach(function (p) {
+    if (NO_LEVEL_HOW_PAGE_RE.test(String(p.label || ''))) markedIds.add(p.id);
+  });
+
+  const expected = checks && checks.expectedNoLevelHowPages;
+  if (expected !== undefined && !Array.isArray(expected)) {
+    errors.push('generationChecks.expectedNoLevelHowPages must be an array of How Page IDs or labels');
+  } else if (Array.isArray(expected)) {
+    expected.forEach(function (entry, i) {
+      if (!isNonEmptyString(entry)) {
+        errors.push('generationChecks.expectedNoLevelHowPages[' + i + '] must be a non-empty How Page ID or label');
+        return;
+      }
+      const wanted = normalizeSearchText(entry);
+      const exact = pages.filter(function (p) {
+        return normalizeSearchText(p.id) === wanted || normalizeSearchText(p.label) === wanted;
+      });
+      const matches = exact.length ? exact : pages.filter(function (p) {
+        return normalizeSearchText(p.label).indexOf(wanted) >= 0;
+      });
+      if (matches.length !== 1) {
+        errors.push('Expected no-level How Page "' + entry + '" matched ' + matches.length + ' How Pages. Identify exactly one page by ID or a unique label.');
+        return;
+      }
+      markedIds.add(matches[0].id);
+    });
+  }
+
+  pages.forEach(function (p) {
+    if (!markedIds.has(p.id)) return;
+    setNoLevelHowPage(cfg, p.id, p.label || p.id, autoFixes);
+  });
+
+  pages.forEach(function (p) {
+    if (!markedIds.has(p.id)) return;
+    const fixed = p.howLevel === null;
+    if (!fixed) {
+      errors.push('Cross-Link/no-level How Page "' + (p.label || p.id) + '" has howLevel: ' + String(p.howLevel) + '. Expected howLevel: null.');
+    }
+  });
+
+  if (!strict && markedIds.size) {
+    warn(warnings, 'Detected labelled Cross-Link/no-level How Pages and enforced howLevel: null as a safe baseline normalization.');
+  }
+}
+
+function collectBoxLabelMap(cfg) {
+  const labels = Object.create(null);
+  const pages = Array.isArray(cfg.subpages) ? cfg.subpages : [];
+  pages.forEach(function (p) {
+    if (!p || !p.id) return;
+    const type = p.pageType || 'this_then';
+    if (Array.isArray(p.cols)) {
+      p.cols.forEach(function (col, ci) {
+        if (!col || !Array.isArray(col.boxes)) return;
+        col.boxes.forEach(function (box, bi) {
+          const label = boxLabelValue(box);
+          if (label !== null) labels[p.id + '-c' + ci + '-b' + bi] = label;
+        });
+      });
+    }
+    if (type === 'how' && Array.isArray(p.howBoxes)) {
+      p.howBoxes.forEach(function (hb) {
+        if (hb && hb.id && typeof hb.label === 'string') labels[p.id + '-' + hb.id] = hb.label;
+      });
+    }
+  });
+  if (Array.isArray(cfg.finalOutcomes)) {
+    cfg.finalOutcomes.forEach(function (f, i) { labels['final-b' + i] = finalOutcomeLabelValue(f); });
+  }
+  if (cfg.savedState && isPlainObject(cfg.savedState.B)) {
+    Object.keys(cfg.savedState.B).forEach(function (key) {
+      const b = cfg.savedState.B[key];
+      if (b && typeof b.label === 'string' && b.label.trim()) labels[key] = b.label;
+    });
+  }
+  return labels;
+}
+
+function linkArrayLocations(cfg, key) {
+  const locations = [];
+  if (cfg.savedState && Array.isArray(cfg.savedState[key])) {
+    locations.push({ name: 'savedState.' + key, links: cfg.savedState[key] });
+  }
+  if (Array.isArray(cfg[key])) locations.push({ name: key, links: cfg[key] });
+  return locations;
+}
+
+function stemWord(word) {
+  let out = String(word || '').toLowerCase();
+  if (out.length > 5 && /ies$/.test(out)) out = out.slice(0, -3) + 'y';
+  else if (out.length > 5 && /ing$/.test(out)) out = out.slice(0, -3);
+  else if (out.length > 4 && /ed$/.test(out)) out = out.slice(0, -2);
+  else if (out.length > 4 && /s$/.test(out)) out = out.slice(0, -1);
+  return out;
+}
+
+function textWords(value) {
+  return normalizeSearchText(String(value || '').replace(/https?:\/\/\S+/gi, ' url '))
+    .split(' ')
+    .filter(Boolean)
+    .map(stemWord);
+}
+
+function meaningfulWordSet(value) {
+  const stop = new Set(['a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'for', 'from', 'has', 'have', 'help', 'helps', 'in', 'is', 'it', 'make', 'makes', 'more', 'of', 'on', 'or', 'that', 'the', 'their', 'this', 'to', 'with', 'work']);
+  const out = new Set();
+  textWords(value).forEach(function (word) {
+    if (word.length >= 3 && !stop.has(word)) out.add(word);
+  });
+  return out;
+}
+
+function setHasAny(left, right) {
+  let found = false;
+  left.forEach(function (value) {
+    if (right.has(value)) found = true;
+  });
+  return found;
+}
+
+function tokenSimilarity(leftText, rightText) {
+  const left = meaningfulWordSet(leftText);
+  const right = meaningfulWordSet(rightText);
+  if (!left.size || !right.size) return 0;
+  let common = 0;
+  left.forEach(function (value) { if (right.has(value)) common++; });
+  return common / Math.max(left.size, right.size);
+}
+
+function endpointFrame(text, fromLabel, toLabel) {
+  const endpointWords = meaningfulWordSet((fromLabel || '') + ' ' + (toLabel || ''));
+  return textWords(text).filter(function (word) {
+    return word !== 'url' && !endpointWords.has(word);
+  }).join(' ');
+}
+
+function linkTextReflectsEndpoint(text, fromLabel, toLabel) {
+  const textSet = meaningfulWordSet(text);
+  const endpointSet = meaningfulWordSet((fromLabel || '') + ' ' + (toLabel || ''));
+  return !endpointSet.size || setHasAny(textSet, endpointSet);
+}
+
+function firstMatchingPattern(text, patterns) {
+  for (let i = 0; i < patterns.length; i++) {
+    if (patterns[i].test(text)) return patterns[i].source;
+  }
+  return '';
+}
+
+function validateStrictLinkTextArray(location, kind, links, labels, requireUrl, errors) {
+  const inspected = [];
+  links.forEach(function (link, i) {
+    if (!isPlainObject(link)) return;
+    const where = location + '[' + i + ']';
+    const text = typeof link.mainText === 'string' ? link.mainText.trim() : '';
+    if (!text) {
+      errors.push(where + '.mainText is required because ' + kind + ' Display Text was requested');
+      return;
+    }
+    if (textWords(text).length < 4) {
+      errors.push(where + '.mainText is too generic or short for relationship-specific ' + kind + ' Display Text: "' + text + '"');
+    }
+    const banned = firstMatchingPattern(text, LINK_TEXT_BANNED_PATTERNS.concat(kind === 'How-link' ? HOW_LINK_TEXT_BANNED_PATTERNS : []));
+    if (banned) {
+      errors.push(where + '.mainText contains banned or generic boilerplate (' + banned + '): "' + text + '"');
+    }
+    if (requireUrl && !/https?:\/\/\S+/i.test(text)) {
+      errors.push(where + '.mainText must include a relationship-specific evidence URL because generationChecks.linkEvidenceUrlsRequested is true');
+    }
+    const fromLabel = labels[link.from] || '';
+    const toLabel = labels[link.to] || '';
+    if (!linkTextReflectsEndpoint(text, fromLabel, toLabel)) {
+      errors.push(where + '.mainText does not refer to the actual source or target box content (' + (fromLabel || link.from) + ' -> ' + (toLabel || link.to) + ')');
+    }
+    inspected.push({ where: where, text: text, normalized: normalizeSearchText(text), frame: endpointFrame(text, fromLabel, toLabel) });
+  });
+
+  for (let i = 0; i < inspected.length; i++) {
+    for (let j = i + 1; j < inspected.length; j++) {
+      const left = inspected[i];
+      const right = inspected[j];
+      if (left.normalized === right.normalized) {
+        errors.push(location + ' repeats identical ' + kind + ' mainText at ' + left.where + ' and ' + right.where);
+      } else if (tokenSimilarity(left.text, right.text) >= 0.82) {
+        errors.push(location + ' has near-repeated ' + kind + ' mainText at ' + left.where + ' and ' + right.where);
+      } else if (left.frame && left.frame.split(' ').length >= 4 && left.frame === right.frame) {
+        errors.push(location + ' repeats a ' + kind + ' sentence frame at ' + left.where + ' and ' + right.where);
+      }
+    }
+  }
+}
+
+function validateStrictLinkText(cfg, checks, errors) {
+  const labels = collectBoxLabelMap(cfg);
+  const requireUrl = checks.linkEvidenceUrlsRequested === true;
+  if (checks.linkDisplayTextRequested === true) {
+    const locations = linkArrayLocations(cfg, 'ttLinks');
+    if (!locations.length || !locations.some(function (item) { return item.links.length; })) {
+      errors.push('generationChecks.linkDisplayTextRequested is true but no This-Then links were generated');
+    }
+    locations.forEach(function (item) {
+      validateStrictLinkTextArray(item.name, 'This-Then link', item.links, labels, requireUrl, errors);
+    });
+  }
+  if (checks.howLinkDisplayTextRequested === true) {
+    const locations = linkArrayLocations(cfg, 'howLinks');
+    if (!locations.length || !locations.some(function (item) { return item.links.length; })) {
+      errors.push('generationChecks.howLinkDisplayTextRequested is true but no How links were generated');
+    }
+    locations.forEach(function (item) {
+      validateStrictLinkTextArray(item.name, 'How-link', item.links, labels, requireUrl, errors);
+    });
+  }
+}
+
+function validateBaselineLinkTextArray(location, kind, links, strict, errors, warnings) {
+  const seen = Object.create(null);
+  links.forEach(function (link, i) {
+    if (!isPlainObject(link) || !isNonEmptyString(link.mainText)) return;
+    const where = location + '[' + i + ']';
+    const text = link.mainText.trim();
+    const normalized = normalizeSearchText(text);
+    const banned = firstMatchingPattern(text, LINK_TEXT_BANNED_PATTERNS.concat(kind === 'How-link' ? HOW_LINK_TEXT_BANNED_PATTERNS : []));
+    if (banned) {
+      reportModeIssue(strict, errors, warnings, where + '.mainText contains obvious generic boilerplate (' + banned + '): "' + text + '"');
+    }
+    if (seen[normalized]) {
+      reportModeIssue(strict, errors, warnings, location + ' repeats identical ' + kind + ' mainText at ' + seen[normalized] + ' and ' + where);
+    } else {
+      seen[normalized] = where;
+    }
+  });
+}
+
+function validateBaselineLinkText(cfg, strict, errors, warnings) {
+  linkArrayLocations(cfg, 'ttLinks').forEach(function (item) {
+    validateBaselineLinkTextArray(item.name, 'This-Then link', item.links, strict, errors, warnings);
+  });
+  linkArrayLocations(cfg, 'howLinks').forEach(function (item) {
+    validateBaselineLinkTextArray(item.name, 'How-link', item.links, strict, errors, warnings);
+  });
+}
+
+function parseHtmlAttrs(text) {
+  const attrs = Object.create(null);
+  String(text || '').replace(/([A-Za-z0-9:_-]+)\s*=\s*(["'])(.*?)\2/g, function (_match, name, _quote, value) {
+    attrs[name.toLowerCase()] = value;
+    return _match;
+  });
+  return attrs;
+}
+
+function collectCloneSourceKeys(cfg) {
+  const keys = {
+    page_title: new Set(['final']),
+    box_title: collectKnownBoxIds(cfg, []),
+    box_main_text: collectKnownBoxIds(cfg, []),
+    measure: new Set(),
+    eval_question: new Set(),
+    link: new Set()
+  };
+  const pages = Array.isArray(cfg.subpages) ? cfg.subpages : [];
+  pages.forEach(function (p) { if (p && p.id) keys.page_title.add(p.id); });
+  const state = cfg.savedState && isPlainObject(cfg.savedState) ? cfg.savedState : {};
+  (Array.isArray(state.measures) ? state.measures : []).forEach(function (m) { if (m && m.id) keys.measure.add(m.id); });
+  (Array.isArray(state.evalQuestions) ? state.evalQuestions : []).forEach(function (q) { if (q && q.id) keys.eval_question.add(q.id); });
+  ['ttLinks', 'howLinks'].forEach(function (name) {
+    linkArrayLocations(cfg, name).forEach(function (item) {
+      item.links.forEach(function (link) { if (link && link.id) keys.link.add(link.id); });
+    });
+  });
+  return keys;
+}
+
+function validateDocumentationClones(cfg, checks, strict, errors, warnings) {
+  const state = cfg.savedState && isPlainObject(cfg.savedState) ? cfg.savedState : {};
+  const docContent = isPlainObject(state.docContent) ? state.docContent : {};
+  const sourceKeys = collectCloneSourceKeys(cfg);
+  const pages = Array.isArray(cfg.subpages) ? cfg.subpages : [];
+  const pageLabels = Object.create(null);
+  pages.forEach(function (page) {
+    if (page && page.id) pageLabels[page.id] = String(page.label || '');
+  });
+  const cloneClaimRe = /\b(?:clones?|cloned|live references?)\b|data-clone-(?:id|key|type)|doc[\s_-]?clone/i;
+  let cloneClaimed = checks.documentationClonesRequested === true;
+  let validCloneCount = 0;
+  Object.keys(docContent).forEach(function (pageId) {
+    const html = String(docContent[pageId] || '');
+    if (cloneClaimRe.test((pageLabels[pageId] || '') + ' ' + html)) cloneClaimed = true;
+    if (/data-clone-id\s*=/i.test(html)) {
+      reportModeIssue(strict, errors, warnings, 'savedState.docContent[' + pageId + '] uses fake Documentation clone syntax data-clone-id. Use an engine-supported <div class="doc-clone" data-clone-type="..." data-clone-key="..."></div> block.');
+    }
+    html.replace(/<([A-Za-z0-9]+)\b([^>]*)>/g, function (_match, tag, attrText) {
+      const attrs = parseHtmlAttrs(attrText);
+      const classes = String(attrs.class || '').split(/\s+/);
+      if (classes.indexOf('doc-clone') === -1) return _match;
+      const type = attrs['data-clone-type'] || '';
+      const key = attrs['data-clone-key'] || '';
+      if (String(tag).toLowerCase() !== 'div') {
+        reportModeIssue(strict, errors, warnings, 'savedState.docContent[' + pageId + '] uses a .doc-clone on <' + tag + '>. Use an engine-supported <div class="doc-clone" ...></div> block.');
+      } else if (DOC_CLONE_TYPES.indexOf(type) === -1) {
+        reportModeIssue(strict, errors, warnings, 'savedState.docContent[' + pageId + '] has unsupported Documentation clone type: ' + (type || '(missing)'));
+      } else if (!key || !sourceKeys[type].has(key)) {
+        reportModeIssue(strict, errors, warnings, 'savedState.docContent[' + pageId + '] has Documentation clone key "' + (key || '(missing)') + '" that does not point to a real ' + type + ' object');
+      } else {
+        validCloneCount++;
+      }
+      return _match;
+    });
+  });
+  pages.forEach(function (page) {
+    if (page && (page.pageType || 'this_then') === 'documentation' && cloneClaimRe.test(String(page.label || ''))) cloneClaimed = true;
+  });
+  if (cloneClaimed && !validCloneCount) {
+    reportModeIssue(strict, errors, warnings, 'Documentation clones are claimed or requested but no valid engine-supported .doc-clone blocks were found in savedState.docContent');
+  }
+}
+
+function validateRequestedAttachments(cfg, checks, errors) {
+  const state = cfg.savedState && isPlainObject(cfg.savedState) ? cfg.savedState : {};
+  const B = isPlainObject(state.B) ? state.B : {};
+  const knownBoxes = collectKnownBoxIds(cfg, []);
+  [
+    { flag: 'measuresMustAttachToBoxes', standalone: 'standaloneMeasuresRequested', list: 'measures', field: 'measures', label: 'Measure' },
+    { flag: 'evalQuestionsMustAttachToBoxes', standalone: 'standaloneEvalQuestionsRequested', list: 'evalQuestions', field: 'evalQuestions', label: 'Evaluation Question' }
+  ].forEach(function (rule) {
+    if (checks[rule.flag] !== true || checks[rule.standalone] === true) return;
+    const items = Array.isArray(state[rule.list]) ? state[rule.list] : [];
+    const itemIds = new Set();
+    items.forEach(function (item, i) {
+      if (!item || !isNonEmptyString(item.id)) {
+        errors.push('savedState.' + rule.list + '[' + i + '] must have an ID for strict attachment validation');
+      } else {
+        itemIds.add(item.id);
+      }
+    });
+    if (!items.length) {
+      errors.push('generationChecks.' + rule.flag + ' is true but no ' + rule.label + ' items were generated');
+      return;
+    }
+    const attached = new Set();
+    Object.keys(B).forEach(function (boxId) {
+      if (!knownBoxes.has(boxId) || !isPlainObject(B[boxId]) || !Array.isArray(B[boxId][rule.field])) return;
+      B[boxId][rule.field].forEach(function (itemId) {
+        if (!itemIds.has(itemId)) {
+          errors.push('savedState.B[' + boxId + '].' + rule.field + ' points to missing ' + rule.label + ' ID: ' + itemId);
+        } else {
+          attached.add(itemId);
+        }
+      });
+    });
+    itemIds.forEach(function (itemId) {
+      if (!attached.has(itemId)) errors.push(rule.label + ' "' + itemId + '" is not attached to any relevant box');
+    });
+  });
+}
+
+function requestedViewOptionAllowed(checks, section, key) {
+  const requested = checks.requestedPageViewOptions;
+  if (Array.isArray(requested)) return requested.indexOf(section + '.' + key) >= 0;
+  if (!isPlainObject(requested)) return false;
+  if (Array.isArray(requested[section])) return requested[section].indexOf(key) >= 0;
+  return isPlainObject(requested[section]) && requested[section][key] === true;
+}
+
+function clearUnrequestedViewOptions(cfg, checks, errors, autoFixes) {
+  const state = cfg.savedState && isPlainObject(cfg.savedState) ? cfg.savedState : null;
+  if (!state || !isPlainObject(state.viewSettings)) {
+    errors.push('savedState.viewSettings is required for strict Page View validation');
+    return;
+  }
+  Object.keys(state.viewSettings).forEach(function (section) {
+    const settings = state.viewSettings[section];
+    if (!isPlainObject(settings)) return;
+    Object.keys(settings).forEach(function (key) {
+      if (settings[key] === true && !requestedViewOptionAllowed(checks, section, key)) {
+        settings[key] = false;
+        pushAutoFix(autoFixes, 'Set unrequested Page View option savedState.viewSettings.' + section + '.' + key + ' to false.');
+      }
+    });
+  });
+}
+
+function clearViewFlag(cfg, flag, autoFixes) {
+  const state = cfg.savedState && isPlainObject(cfg.savedState) ? cfg.savedState : null;
+  if (!state || !isPlainObject(state.viewSettings)) return;
+  Object.keys(state.viewSettings).forEach(function (section) {
+    const settings = state.viewSettings[section];
+    if (isPlainObject(settings) && settings[flag] === true) {
+      settings[flag] = false;
+      pushAutoFix(autoFixes, 'Set unrequested Page View option savedState.viewSettings.' + section + '.' + flag + ' to false.');
+    }
+  });
+}
+
+function validateUnrequestedBoxDisplayText(cfg, checks, errors) {
+  if (checks.boxDisplayTextRequested !== false) return;
+  const B = cfg.savedState && isPlainObject(cfg.savedState.B) ? cfg.savedState.B : {};
+  Object.keys(B).forEach(function (boxId) {
+    if (isPlainObject(B[boxId]) && isNonEmptyString(B[boxId].detailText)) {
+      errors.push('savedState.B[' + boxId + '].detailText must be blank or omitted because box Display Text was not requested');
+    }
+  });
+}
+
+function validateUnrequestedTrafficLights(cfg, checks, errors, autoFixes) {
+  if (checks.trafficLightsRequested !== false) return;
+  clearViewFlag(cfg, 'showTrafficLights', autoFixes);
+  const state = cfg.savedState && isPlainObject(cfg.savedState) ? cfg.savedState : {};
+  const B = isPlainObject(state.B) ? state.B : {};
+  Object.keys(B).forEach(function (boxId) {
+    if (B[boxId] && isNonEmptyString(B[boxId].light)) errors.push('savedState.B[' + boxId + '].light must be blank or omitted because Traffic Lights were not requested');
+  });
+  linkArrayLocations(cfg, 'ttLinks').forEach(function (item) {
+    item.links.forEach(function (link, i) {
+      if (link && isNonEmptyString(link.light)) errors.push(item.name + '[' + i + '].light must be blank or omitted because Traffic Lights were not requested');
+    });
+  });
+  ['measures', 'evalQuestions'].forEach(function (field) {
+    (Array.isArray(state[field]) ? state[field] : []).forEach(function (item, i) {
+      if (item && isNonEmptyString(item.trafficLight)) errors.push('savedState.' + field + '[' + i + '].trafficLight must be blank or omitted because Traffic Lights were not requested');
+    });
+  });
+}
+
+function validateUnrequestedPriorities(cfg, checks, errors, autoFixes) {
+  if (checks.prioritiesRequested !== false) return;
+  clearViewFlag(cfg, 'showPriorities', autoFixes);
+  const state = cfg.savedState && isPlainObject(cfg.savedState) ? cfg.savedState : {};
+  const B = isPlainObject(state.B) ? state.B : {};
+  Object.keys(B).forEach(function (boxId) {
+    if (B[boxId] && isNonEmptyString(B[boxId].priority)) errors.push('savedState.B[' + boxId + '].priority must be blank or omitted because priorities were not requested');
+  });
+  howPageCopies(cfg).forEach(function (copy) {
+    copy.pages.forEach(function (page, i) {
+      if (page && page.overviewCard && isNonEmptyString(page.overviewCard.priority)) {
+        errors.push(copy.name + '[' + i + '].overviewCard.priority must be blank or omitted because priorities were not requested');
+      }
+    });
+  });
+}
+
+function runGenerationPreflight(cfg) {
+  const out = cloneJson(cfg);
+  const errors = [];
+  const warnings = [];
+  const autoFixes = [];
+  const hasChecks = out.generationChecks !== undefined;
+  const checks = hasChecks && isPlainObject(out.generationChecks) ? out.generationChecks : {};
+  const strict = hasChecks && isPlainObject(out.generationChecks);
+  if (hasChecks && !isPlainObject(out.generationChecks)) {
+    errors.push('generationChecks must be an object when present');
+  }
+  if (Object.prototype.hasOwnProperty.call(out, 'builderValidation')) {
+    delete out.builderValidation;
+    pushAutoFix(autoFixes, 'Removed input builderValidation metadata. The builder creates a fresh validation stamp only after validation passes.');
+  }
+
+  enforceNoLevelHowPages(out, checks, strict, errors, warnings, autoFixes);
+  validateBaselineLinkText(out, strict, errors, warnings);
+  validateDocumentationClones(out, checks, strict, errors, warnings);
+  if (strict) {
+    validateStrictLinkText(out, checks, errors);
+    validateRequestedAttachments(out, checks, errors);
+    if (checks.allPageViewOptionsOffUnlessRequested === true) clearUnrequestedViewOptions(out, checks, errors, autoFixes);
+    validateUnrequestedBoxDisplayText(out, checks, errors);
+    validateUnrequestedTrafficLights(out, checks, errors, autoFixes);
+    validateUnrequestedPriorities(out, checks, errors, autoFixes);
+  } else {
+    warn(warnings, 'generationChecks metadata is absent; compatibility mode ran high-confidence baseline checks but skipped request-specific strict checks.');
+  }
+  return { cfg: out, errors: errors, warnings: warnings, autoFixes: autoFixes, mode: strict ? 'strict-generated' : 'compatibility' };
+}
+
+function stripBuilderOnlyMetadata(cfg) {
+  const out = cloneJson(cfg);
+  delete out.generationChecks;
+  return out;
+}
+
 function validateSourceEntry(s, i, errors) {
   if (typeof s === 'string') {
     if (!s.trim()) errors.push('Empty source at index ' + i);
@@ -272,6 +834,121 @@ function validateSourceEntry(s, i, errors) {
     return;
   }
   errors.push('Invalid source at index ' + i);
+}
+
+function normalizedRegistryUrl(value) {
+  if (!isNonEmptyString(value)) return '';
+  try {
+    const parsed = new URL(String(value).trim());
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return '';
+    return parsed.href.replace(/\/$/, '');
+  } catch (_e) {
+    return '';
+  }
+}
+
+function sourceEntryUrl(source) {
+  if (isPlainObject(source)) return source.url || source.href || '';
+  if (typeof source === 'string' && /^https?:\/\/\S+$/i.test(source.trim())) return source.trim();
+  return '';
+}
+
+function isStandardNonContentSourceUrl(value) {
+  const key = normalizedRegistryUrl(value);
+  return !!key && STANDARD_NON_CONTENT_SOURCE_URLS.some(function (url) {
+    return normalizedRegistryUrl(url) === key;
+  });
+}
+
+function isAutoAddedStandardNonContentSource(source) {
+  const url = sourceEntryUrl(source);
+  if (!isStandardNonContentSourceUrl(url)) return false;
+  if (!isPlainObject(source)) return false;
+  const title = String(source.title || source.label || '').trim();
+  return !title || normalizedRegistryUrl(title) === normalizedRegistryUrl(url);
+}
+
+function collectUrlsFromText(value, urls) {
+  if (typeof value !== 'string') return;
+  const found = value.match(/https?:\/\/[^\s<>"')\]]+/gi) || [];
+  found.forEach(function (candidate) {
+    const url = candidate.replace(/[.,;:!?]+$/, '');
+    const key = normalizedRegistryUrl(url);
+    if (key && !isStandardNonContentSourceUrl(key) && !urls.has(key)) urls.set(key, url);
+  });
+}
+
+function collectVisibleContentUrls(cfg) {
+  const urls = new Map();
+  function scan(value) {
+    if (typeof value === 'string') {
+      collectUrlsFromText(value, urls);
+      return;
+    }
+    if (Array.isArray(value)) {
+      value.forEach(scan);
+      return;
+    }
+    if (!isPlainObject(value)) return;
+    Object.keys(value).forEach(function (key) {
+      if (key === 'sources' || key === 'generationChecks' || key === 'builderValidation' || key === 'aiEndpoint' || key === 'aiModel') return;
+      scan(value[key]);
+    });
+  }
+  ['title', 'subtitle', 'description', 'boardInfo', 'pageInfo', 'notes', 'topRightText', 'subpages', 'finalOutcomes', 'savedState'].forEach(function (key) {
+    if (cfg[key] !== undefined) scan(cfg[key]);
+  });
+  return urls;
+}
+
+function ensureSourcesRegistryCompleteness(cfg, autoFixes) {
+  if (cfg.sources === undefined) cfg.sources = [];
+  if (!Array.isArray(cfg.sources)) return;
+  const seen = new Set();
+  const deduped = [];
+  cfg.sources.forEach(function (source) {
+    const url = sourceEntryUrl(source);
+    if (isAutoAddedStandardNonContentSource(source)) {
+      pushAutoFix(autoFixes, 'Removed standard non-content package URL from sources registry: ' + url);
+      return;
+    }
+    const key = normalizedRegistryUrl(url);
+    if (key && seen.has(key)) {
+      pushAutoFix(autoFixes, 'Removed duplicate source registry entry for ' + url + '.');
+      return;
+    }
+    if (key) seen.add(key);
+    deduped.push(source);
+  });
+  cfg.sources = deduped;
+  collectVisibleContentUrls(cfg).forEach(function (url, key) {
+    if (seen.has(key)) return;
+    cfg.sources.push({ title: url, url: url });
+    seen.add(key);
+    pushAutoFix(autoFixes, 'Added missing visible-content URL to sources registry: ' + url);
+  });
+}
+
+function createBuilderValidationStamp(mode, warnings, autoFixes) {
+  return {
+    builderVersion: BUILDER_VERSION,
+    validationVersion: VALIDATION_VERSION,
+    mode: mode,
+    passed: true,
+    validatedAt: new Date().toISOString(),
+    checks: {
+      noLevelHowPages: 'passed',
+      thisThenLinkText: 'passed',
+      howLinkText: 'passed',
+      documentationClones: 'passed',
+      measureEqAttachment: 'passed',
+      viewSettings: 'passed',
+      displayTextTrafficPriority: 'passed',
+      sourcesRegistry: 'passed'
+    },
+    warnings: warnings.slice(),
+    autoFixes: autoFixes.slice()
+  };
 }
 
 function validateLinkArray(name, links, knownBoxIds, errors, warnings) {
@@ -927,7 +1604,22 @@ function main() {
 
   const configText = readTextFile(args.config, 'config');
   const rawCfg = parseConfig(configText, args.config);
-  const cfg = ensureCanonicalDisclaimerDocumentationPage(rawCfg);
+  const preflightResult = runGenerationPreflight(rawCfg);
+  if (preflightResult.errors.length) {
+    console.error('DoView strict preflight validation failed:');
+    preflightResult.errors.forEach(function (e) { console.error('- ' + e); });
+    if (preflightResult.autoFixes.length) {
+      console.error('Auto-fixes applied before validation stopped:');
+      preflightResult.autoFixes.forEach(function (fix) { console.error('- ' + fix); });
+    }
+    if (preflightResult.warnings.length) {
+      console.error('Warnings:');
+      preflightResult.warnings.forEach(function (w) { console.error('- ' + w); });
+    }
+    process.exit(1);
+  }
+  const cfg = ensureCanonicalDisclaimerDocumentationPage(stripBuilderOnlyMetadata(preflightResult.cfg));
+  ensureSourcesRegistryCompleteness(cfg, preflightResult.autoFixes);
   const configResult = validateConfig(cfg);
   if (configResult.errors.length) {
     console.error('DoView config validation failed:');
@@ -939,10 +1631,12 @@ function main() {
     process.exit(1);
   }
 
+  const stampWarnings = preflightResult.warnings.concat(configResult.warnings);
   const normalizedCfg = normalizeConfig(cfg);
+  normalizedCfg.builderValidation = createBuilderValidationStamp(preflightResult.mode, stampWarnings, preflightResult.autoFixes);
   const html = assembleHtml(engineText, normalizedCfg);
   const htmlResult = validateHtml(html, args.out);
-  const warnings = configResult.warnings.concat(htmlResult.warnings);
+  const warnings = preflightResult.warnings.concat(configResult.warnings, htmlResult.warnings);
   if (htmlResult.errors.length) {
     console.error('DoView HTML validation failed:');
     htmlResult.errors.forEach(function (e) { console.error('- ' + e); });
@@ -971,10 +1665,16 @@ function main() {
 
   console.log('DoView build succeeded: ' + args.out);
   console.log('Validated config: ' + args.config);
+  console.log('Builder validation stamp inserted: ' + preflightResult.mode + ' (' + BUILDER_VERSION + ')');
   console.log('Validated HTML: engine once in head, one body-only DoView.init(...) config call, standalone output');
-  if (warnings.length || writtenResult.warnings.length) {
+  if (preflightResult.autoFixes.length) {
+    console.log('Auto-fixes applied:');
+    preflightResult.autoFixes.forEach(function (fix) { console.log('- ' + fix); });
+  }
+  const reportedWarnings = Array.from(new Set(warnings.concat(writtenResult.warnings)));
+  if (reportedWarnings.length) {
     console.log('Warnings:');
-    warnings.concat(writtenResult.warnings).forEach(function (w) { console.log('- ' + w); });
+    reportedWarnings.forEach(function (w) { console.log('- ' + w); });
   }
 }
 

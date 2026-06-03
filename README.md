@@ -1,8 +1,8 @@
 # DoView Boards
 
-**DoView Boards version:** V1.2.1  
+**DoView Boards version:** V1.2.6  
 **Release date:** 2026-06-02  
-**Release status:** Public DoView Boards V1.2.1 release
+**Release status:** Public DoView Boards V1.2.6 release
 
 ## What are DoView Boards?
 
@@ -34,7 +34,7 @@ Experimentally, DoView Boards may also provide a visual interface for human-AI c
 
 This repository is a practical starting point for users, developers, researchers, experimenters, and organisations that want to understand, generate, implement, or extend DoView Boards.
 
-The V1.2.1 public release includes:
+The V1.2.6 public release includes:
 
 - the DoView Board building prompt;
 - the canonical JavaScript reference engine;
@@ -49,6 +49,7 @@ The V1.2.1 public release includes:
 - Apache-2.0 licence material;
 - instructions for AI coding agents working with this repository;
 - guidance for humans commissioning AI-built DoView-compatible apps;
+- a plain Node.js strict-preflight regression fixture runner;
 - contribution guidance for developers and users.
 
 This repository does not currently contain the legacy DoView app, PowerPoint board generator prompt, or PDF board examples. The legacy DoView app and its source code are available separately at <https://github.com/DoViewPlanning/DoViewApp>.
@@ -88,7 +89,7 @@ Generated standalone boards are active `.html` files containing JavaScript. Trea
 
 Developers can use this repository to:
 
-- inspect the canonical V1.2.1 reference engine;
+- inspect the canonical V1.2.6 reference engine;
 - generate standalone board HTML files;
 - create tools that output reference-engine-compatible configs;
 - embed DoView Boards in other systems;
@@ -113,10 +114,12 @@ The builder takes a pure JSON board config and the reference engine, then create
 node doview-board-builder.js \
   --engine doview-board-engine.js \
   --config doview-board-config.json \
-  --out example-board_doview-board_v1.2.1_2026-06-02.html
+  --out example-board_doview-board_v1.2.6_2026-06-02.html
 ```
 
 The config input should be JSON only. It should not include prompt text, builder source, duplicate engine code, or a `DoView.init(...)` JavaScript wrapper.
+
+For AI-generated configs, include top-level builder-only `generationChecks` metadata and run the builder until strict preflight validation passes. The builder strips `generationChecks`, completes the board-level Sources registry for visible board-content URLs while excluding fixed package/help URLs, and inserts a `builderValidation` stamp before embedding the final config in standalone HTML. Older configs without `generationChecks` keep the compatibility path, which still runs high-confidence baseline checks and records the compatibility mode accurately.
 
 The generated output is a standalone `.html` board containing active JavaScript.
 
@@ -162,7 +165,7 @@ See [`LICENSE`](LICENSE), [`NOTICE.md`](NOTICE.md), and [`docs/trademark-and-att
 
 Generated standalone DoView Boards are active HTML/JavaScript files. Treat them like executable web content, not passive documents.
 
-The V1.2.1 prototype is intended for experimentation, learning, proof-of-concept work, and non-confidential information in low-risk environments. For higher-risk, sensitive, confidential, regulated, public, multi-user, enterprise, or production environments, use security, privacy, compliance, hosting, access-control, audit, data-handling, integration, and deployment arrangements appropriate to that environment.
+The V1.2.6 prototype is intended for experimentation, learning, proof-of-concept work, and non-confidential information in low-risk environments. For higher-risk, sensitive, confidential, regulated, public, multi-user, enterprise, or production environments, use security, privacy, compliance, hosting, access-control, audit, data-handling, integration, and deployment arrangements appropriate to that environment.
 
 Generated boards from untrusted sources should not be opened casually. Hosted or shared boards should not be served from the same origin/domain as sensitive applications.
 
@@ -231,7 +234,7 @@ For general information about DoView Planning, see https://doviewplanning.org.
 
 See [`CHANGELOG.md`](CHANGELOG.md).
 
-V1.2.1 is the current public DoView Boards prompt package release. Earlier internal builds are not part of the public changelog.
+V1.2.6 is the current public DoView Boards prompt package release. Earlier internal validation builds are retained in the changelog for traceability but are not public releases.
 
 ## More information
 
